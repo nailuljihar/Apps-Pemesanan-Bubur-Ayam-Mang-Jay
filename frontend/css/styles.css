@@ -1,0 +1,295 @@
+/* ========================================================= */
+/* --- 1. VARIABEL WARNA & FONT --- */
+/* ========================================================= */
+:root {
+    --warna-primer: #00897b; /* Hijau Toska/Teal */
+    --warna-latar-halaman: #D7E7F0; /* Biru Muda/Aqua */
+    --warna-latar-konten: #ffffff; /* Putih */
+    --warna-teks: #333333;
+    --warna-sekunder: #4a4a4a;
+    --warna-teks-nav: #8a8a8a; /* Abu-abu */
+    --warna-latar-abu: #f3f3f3; /* Abu-abu muda */
+    --warna-harga-diskon: #dc3545; /* Merah */
+}
+
+/* ========================================================= */
+/* --- 2. RESET DASAR & BODY --- */
+/* ========================================================= */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: var(--warna-latar-halaman);
+    font-family: Arial, sans-serif;
+    color: var(--warna-teks);
+    line-height: 1.6;
+    display: flex;
+    justify-content: center;
+    min-height: 100vh;
+}
+
+/* CONTAINER UMUM */
+.main-wrapper {
+    width: 100%;
+    max-width: 1400px;
+    background-color: var(--warna-latar-konten);
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+/* ========================================================= */
+/* --- 3. HEADER TOKO (Home, Login, Register) --- */
+/* ========================================================= */
+.header-toko {
+    width: 100%;
+    background-color: var(--warna-latar-konten);
+}
+
+.container-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 40px 10px;
+}
+
+.logo-text h3 { font-size: 0.8em; margin: 0; font-weight: normal; }
+.logo-text h1 { font-size: 1.2em; margin: 0; }
+
+.welcome-section { text-align: right; font-size: 0.9em; }
+.user-name { font-weight: bold; color: var(--warna-primer); }
+
+.search-bar-container {
+    background-color: var(--warna-primer);
+    padding: 10px 40px;
+}
+
+.container-search {
+    display: flex;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.container-search select,
+.container-search input {
+    border: none;
+    padding: 10px;
+    height: 40px;
+    font-size: 1em;
+}
+
+.search-dropdown select {
+    border-top-left-radius: 5px;
+    border-bottom-left-radius: 5px;
+    background-color: white;
+    margin-right: -1px;
+    cursor: pointer;
+}
+
+.container-search input {
+    flex-grow: 1;
+}
+
+.search-btn {
+    background-color: white;
+    color: var(--warna-primer);
+    border: none;
+    width: 50px;
+    height: 40px;
+    border-top-right-radius: 5px;
+    border-bottom-right-radius: 5px;
+    cursor: pointer;
+}
+
+/* ========================================================= */
+/* --- 4. FORM LOGIN / REGISTER --- */
+/* ========================================================= */
+.main-content-form { padding: 20px 40px 50px; }
+.breadcrumb { padding: 10px 0; font-size: 0.9em; color: var(--warna-teks-nav); margin-bottom: 20px; }
+.breadcrumb a { text-decoration: none; color: var(--warna-teks-nav); }
+
+.form-container { display: flex; gap: 40px; padding: 40px 0; }
+
+.form-illustration { flex: 1; display: flex; align-items: center; justify-content: center; }
+.form-illustration img { max-width: 100%; height: auto; }
+
+.form-content { flex: 1; max-width: 400px; }
+
+.form-title { color: var(--warna-primer); margin-bottom: 5px; }
+.form-subtitle { font-size: 0.8em; color: var(--warna-sekunder); margin-bottom: 20px; }
+
+.form-content label { display: block; margin-top: 15px; margin-bottom: 5px; font-weight: bold; font-size: 0.9em; }
+
+.form-content input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 1em;
+}
+
+.forgot-password { display: block; text-align: right; font-size: 0.8em; color: var(--warna-sekunder); margin-top: 5px; text-decoration: none; }
+
+.tombol-form-cta {
+    width: 100%;
+    background-color: var(--warna-primer);
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 5px;
+    margin-top: 25px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 1.1em;
+}
+
+.switch-page { text-align: center; margin-top: 20px; font-size: 0.9em; color: var(--warna-sekunder); }
+.switch-page a { color: var(--warna-primer); text-decoration: none; font-weight: bold; }
+
+/* ========================================================= */
+/* --- 5. HALAMAN HOME / PRODUCT LISTING --- */
+/* ========================================================= */
+.main-content-toko { padding: 20px 40px 50px; }
+
+.menu-tabs {
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid #e0e0e0;
+    margin-bottom: 30px;
+}
+
+.menu-tabs a {
+    text-decoration: none;
+    color: var(--warna-sekunder);
+    padding: 10px 20px;
+    margin-right: 15px;
+    font-size: 0.9em;
+}
+
+.menu-tabs a.active {
+    font-weight: bold;
+    color: var(--warna-primer);
+    border-bottom: 2px solid var(--warna-primer);
+}
+
+.menu-tabs .tampilkan-semua {
+    margin-left: auto;
+    font-size: 0.8em;
+    color: var(--warna-primer);
+    border-bottom: none;
+    font-weight: normal;
+}
+
+.product-carousel {
+    display: flex;
+    overflow-x: auto; 
+    gap: 20px;
+    padding-bottom: 10px;
+}
+
+.product-card { flex: 0 0 auto; width: 200px; text-align: center; }
+
+.product-card img {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+    border-radius: 5px;
+    margin-bottom: 10px;
+}
+
+.product-name { font-weight: bold; margin: 5px 0; }
+.product-price { color: var(--warna-primer); font-size: 1.1em; }
+
+/* ========================================================= */
+/* --- 6. DETAIL MENU MODAL --- */
+/* ========================================================= */
+.modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(215, 231, 240, 0.9);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+}
+
+.detail-menu-modal {
+    width: 80%;
+    max-width: 700px;
+    background-color: var(--warna-latar-konten);
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+
+.modal-header-detail {
+    background-color: var(--warna-primer);
+    color: white;
+    padding: 15px 20px;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+    font-weight: bold;
+}
+
+.modal-body-detail { padding: 30px; }
+
+.detail-content-wrapper { display: flex; gap: 30px; }
+
+.menu-image-section { position: relative; flex: 1; }
+.menu-image-section img { width: 100%; height: auto; border-radius: 5px; }
+
+.harga-badge {
+    position: absolute;
+    top: 10px;
+    left: -10px;
+    background-color: var(--warna-primer);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 3px;
+    font-weight: bold;
+    font-size: 0.9em;
+}
+
+.harga-awal { position: absolute; top: -5px; left: -10px; color: white; font-size: 0.6em; }
+
+.menu-info-section { flex: 1; display: flex; flex-direction: column; }
+
+.rating { font-size: 0.8em; color: var(--warna-sekunder); margin-bottom: 5px; }
+.menu-title { font-size: 1.5em; margin-top: 0; }
+
+.harga-sekarang {
+    font-size: 1.5em;
+    color: var(--warna-harga-diskon);
+    font-weight: bold;
+    margin-bottom: 15px;
+}
+
+.harga-coret {
+    font-size: 0.7em;
+    color: var(--warna-sekunder);
+    text-decoration: line-through;
+    font-weight: normal;
+    margin-left: 10px;
+}
+
+.komposisi {
+    list-style-type: disc;
+    margin-left: 20px;
+    color: var(--warna-sekunder);
+    margin-bottom: auto; 
+}
+
+.btn-beli-sekarang {
+    background-color: var(--warna-primer);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+    align-self: flex-end; 
+    margin-top: 20px;
+}
