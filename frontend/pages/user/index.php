@@ -78,7 +78,7 @@ $current_tab = isset($_GET['tab']) ? htmlspecialchars($_GET['tab']) : 'bestselle
 
                 <div class="product-carousel">
                     <div class="product-card">
-                        <a href="index.php?menu=bubur_jumbo"><img src="/bubur-ayam-frontend/assets/images/bubur-ayam.jpg" alt="Bubur Ayam Jumbo"></a>
+                        <a href="checkout.php"><img src="/bubur-ayam-frontend/assets/images/bubur-ayam.jpg" alt="Bubur Ayam Jumbo"></a>
                         <p class="product-name">Bubur Ayam Jumbo</p>
                         <p class="product-price">Rp. 10.000</p>
                     </div>
