@@ -1,4 +1,3 @@
--- Active: 1744562320762@@127.0.0.1@3306@mysql
 <?php 
 // 1. Logika Modal Detail Menu menggunakan Parameter URL
 $menu_id = isset($_GET['menu']) ? htmlspecialchars($_GET['menu']) : null; 
@@ -31,7 +30,7 @@ $current_tab = isset($_GET['tab']) ? htmlspecialchars($_GET['tab']) : 'bestselle
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Home - Bubur Ayam Bandung Bang Jay</title>
-    <link rel="stylesheet" href="..\..\frontend\css"> 
+    <link rel="stylesheet" href="../../css/styles.css"> 
 </head>
 <body>
     <div class="main-wrapper">

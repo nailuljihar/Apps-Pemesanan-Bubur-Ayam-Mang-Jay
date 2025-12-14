@@ -3,7 +3,7 @@
 $host = 'localhost'; // Ganti jika host database Anda berbeda
 $user = 'root';      // Ganti dengan username database Anda
 $pass = '';          // Ganti dengan password database Anda
-$db_name = 'bubu_db';
+$db_name = 'bubur_ayam_apps';
 
 // Membuat koneksi
 $koneksi = new mysqli($host, $user, $pass, $db_name);
@@ -17,7 +17,4 @@ if ($koneksi->connect_error) {
 // Opsional: Mengatur header untuk mencegah caching
 header("Cache-Control: no-cache, must-revalidate"); 
 header("Expires: Sat, 26 Jul 1997 05:00:00 GMT"); 
-
-// Koneksi berhasil
-// echo "Koneksi database berhasil!"; 
 ?>

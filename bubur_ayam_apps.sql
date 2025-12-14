@@ -1,9 +1,9 @@
 -- phpMyAdmin SQL Dump
--- version 5.2.2
+-- version 5.2.0
 -- https://www.phpmyadmin.net/
 --
--- Host: localhost
--- Generation Time: Nov 03, 2025 at 12:34 PM
+-- Host: localhost:3306
+-- Generation Time: Dec 14, 2025 at 07:42 PM
 -- Server version: 8.0.30
 -- PHP Version: 8.1.10
 
@@ -18,7 +18,7 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Database: `bubu_db`
+-- Database: `bubur_ayam_apps`
 --
 
 -- --------------------------------------------------------
@@ -127,22 +127,49 @@ INSERT INTO `produk` (`id_produk`, `nama_produk`, `harga`, `status_aktif`) VALUE
 CREATE TABLE `transaksi` (
   `id_transaksi` int NOT NULL,
   `tanggal` date DEFAULT NULL,
-  `jenis_transaksi` enum('offline','online') DEFAULT NULL,
+  `jenis_transaksi` enum('offline','online') CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
   `total_pendapatan` int DEFAULT NULL,
-  `metode_pembayaran` enum('cash','qris') DEFAULT NULL,
-  `catatan` varchar(100) DEFAULT NULL
+  `metode_pembayaran` enum('cash','qris') CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  `catatan` varchar(100) DEFAULT NULL,
+  `status` enum('Pending','Sukses','Batal') NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Dumping data for table `transaksi`
 --
 
-INSERT INTO `transaksi` (`id_transaksi`, `tanggal`, `jenis_transaksi`, `total_pendapatan`, `metode_pembayaran`, `catatan`) VALUES
-(1, '2025-11-01', 'offline', 28000, 'cash', 'pagi'),
-(2, '2025-11-02', 'online', 21000, 'qris', 'pesan via WA'),
-(3, '2025-11-03', 'offline', 36000, 'cash', 'ramai jam 7'),
-(4, '2025-11-04', 'online', 18000, 'qris', 'pesan pelanggan tetap'),
-(5, '2025-11-05', 'offline', 27000, 'cash', 'pagi hari');
+INSERT INTO `transaksi` (`id_transaksi`, `tanggal`, `jenis_transaksi`, `total_pendapatan`, `metode_pembayaran`, `catatan`, `status`) VALUES
+(1, '2025-11-01', 'offline', 28000, 'cash', 'pagi', 'Pending'),
+(2, '2025-11-02', 'online', 21000, 'qris', 'pesan via WA', 'Pending'),
+(3, '2025-11-03', 'offline', 36000, 'cash', 'ramai jam 7', 'Pending'),
+(4, '2025-11-04', 'online', 18000, 'qris', 'pesan pelanggan tetap', 'Pending'),
+(5, '2025-11-05', 'offline', 27000, 'cash', 'pagi hari', 'Pending');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `users`
+--
+
+CREATE TABLE `users` (
+  `id_users` int NOT NULL,
+  `nama_lengkap` varchar(100) NOT NULL,
+  `username` varchar(50) NOT NULL,
+  `password` varchar(255) NOT NULL,
+  `email` varchar(100) DEFAULT NULL,
+  `no_hp` varchar(20) DEFAULT NULL,
+  `alamat` text,
+  `role` enum('admin','user') DEFAULT 'user',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Dumping data for table `users`
+--
+
+INSERT INTO `users` (`id_users`, `nama_lengkap`, `username`, `password`, `email`, `no_hp`, `alamat`, `role`, `created_at`, `updated_at`) VALUES
+(1, 'admin', 'admin', '$2y$10$iu.UiqzI1pFtsRXkK.Xhu.1WsU2Cm6FXiGYTdigXJZQOQSkkBc/kC', NULL, NULL, NULL, 'admin', '2025-12-14 17:55:06', '2025-12-14 18:37:41');
 
 --
 -- Indexes for dumped tables
@@ -181,6 +208,13 @@ ALTER TABLE `transaksi`
   ADD PRIMARY KEY (`id_transaksi`);
 
 --
+-- Indexes for table `users`
+--
+ALTER TABLE `users`
+  ADD PRIMARY KEY (`id_users`),
+  ADD UNIQUE KEY `username` (`username`);
+
+--
 -- AUTO_INCREMENT for dumped tables
 --
 
@@ -207,6 +241,12 @@ ALTER TABLE `produk`
 --
 ALTER TABLE `transaksi`
   MODIFY `id_transaksi` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+
+--
+-- AUTO_INCREMENT for table `users`
+--
+ALTER TABLE `users`
+  MODIFY `id_users` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- Constraints for dumped tables
