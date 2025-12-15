@@ -1,59 +1,85 @@
 <?php
-// Pastikan lo udah install pake composer
-// Path ini relatif dari 'FINTECH/frontend/pages/user/' ke 'FINTECH/vendor/autoload.php'
-require_once dirname(__FILE__) . '/../../../vendor/autoload.php'; 
-
-// 1. INI ADALAH VERSI SANDBOX (buat testing)
-// Set Server Key Sandbox lo
-\Midtrans\Config::$serverKey = 'SB-Mid-server-9nWvHSWmVVj4U90WuCfqJ-67'; // GANTI xxxxxxxxx DENGAN SERVER KEY SANDBOX LO
-// Set environment ke Sandbox
-\Midtrans\Config::$isProduction = false;
-// Aktifin 3DS (WAJIB kalo pake kartu kredit)
-\Midtrans\Config::$is3ds = false;
-
-// Ambil data JSON yang dikirim dari frontend (checkout.php)
-$json_data = file_get_contents('php://input');
-$data = json_decode($json_data);
-
-// Kalo datanya ga ada, matiin
-if (!$data || !isset($data->harga) || !isset($data->order_id)) {
-    http_response_code(400);
-    echo json_encode(['error' => 'Data pesanan tidak lengkap.']);
-    exit;
+// === KONFIGURASI DEBUGGING (TETAP DIPAKAI BUAT JAGA-JAGA) ===
+$log_file = 'debug_log.txt'; 
+function catatLog($pesan) {
+    global $log_file;
+    $isi = "[" . date('Y-m-d H:i:s') . "] " . $pesan . "\n";
+    file_put_contents($log_file, $isi, FILE_APPEND);
 }
 
-// Siapin data buat Midtrans
-$params = array(
-    'transaction_details' => array(
-        'order_id' => $data->order_id,          // Order ID unik lo
-        'gross_amount' => $data->harga,         // Total harga
-    ),
-    'item_details' => array(
-        array(
-            'id' => 'BUBUR-01',                 // ID produk
-            'price' => $data->harga,
-            'quantity' => 1,
-            'name' => $data->nama_produk
-        )
-    ),
-    'customer_details' => array(
-        // (Opsional) Lo bisa tambahin data customer dari form
-        'first_name' => 'Pelanggan',
-        'last_name' => 'Bang Jay',
-        'email' => 'pelanggan@example.com',
-        'phone' => '081234567890',
-    ),
-);
+// Tahan output browser
+ob_start(); 
+ini_set('display_errors', 0);
+error_reporting(E_ALL);
+
+header('Content-Type: application/json');
 
 try {
-    // Dapetin Snap Token
+    // 1. LOAD LIBRARY
+    require_once __DIR__ . '/../../../vendor/autoload.php';
+
+    // 2. KONFIGURASI MIDTRANS
+    \Midtrans\Config::$serverKey = 'SB-Mid-server-9nWvHSWmVVj4U90WuCfqJ-67'; 
+    \Midtrans\Config::$isProduction = false;
+    \Midtrans\Config::$isSanitized = true;
+    \Midtrans\Config::$is3ds = true;
+
+    // 3. BACA DATA (DENGAN MODE ARRAY)
+    $json_mentah = file_get_contents('php://input');
+    
+    // PERUBAHAN PENTING DI SINI: tambahkan param 'true' agar jadi Array
+    $data = json_decode($json_mentah, true); 
+
+    if (json_last_error() !== JSON_ERROR_NONE) {
+        throw new Exception("JSON Invalid");
+    }
+
+    // Validasi Data
+    if (empty($data['order_id']) || empty($data['gross_amount'])) {
+        throw new Exception("Data tidak lengkap (Order ID/Gross Amount hilang)");
+    }
+
+    // 4. SUSUN PARAMETER (Explicit Casting biar Aman 100%)
+    // Kita susun ulang items-nya biar formatnya Array murni dan tipe datanya pas
+    $items_fixed = [];
+    if (isset($data['items']) && is_array($data['items'])) {
+        foreach ($data['items'] as $item) {
+            $items_fixed[] = [
+                'id'       => (string) $item['id'],       // Midtrans minta ID string
+                'price'    => (int) $item['price'],       // Midtrans minta Price integer
+                'quantity' => (int) $item['quantity'],    // Midtrans minta Qty integer
+                'name'     => (string) $item['name']
+            ];
+        }
+    }
+
+    $params = array(
+        'transaction_details' => array(
+            'order_id' => $data['order_id'],
+            'gross_amount' => (int)$data['gross_amount'],
+        ),
+        'item_details' => $items_fixed, // Pakai array yang sudah kita perbaiki
+        'customer_details' => array(
+            'first_name' => $data['customer']['first_name'] ?? 'Pelanggan',
+            'email' => $data['customer']['email'] ?? 'email@contoh.com',
+            'phone' => $data['customer']['phone'] ?? '08123456789',
+        ),
+    );
+
+    // 5. MINTA SNAP TOKEN
+    catatLog("Mengirim request ke Midtrans... (Order: " . $data['order_id'] . ")");
+    
     $snapToken = \Midtrans\Snap::getSnapToken($params);
     
-    // Kirim token balik ke frontend
-    header('Content-Type: application/json');
+    catatLog("BERHASIL! Token: " . $snapToken);
+
+    // 6. KIRIM HASIL
+    ob_end_clean();
     echo json_encode(['token' => $snapToken]);
 
 } catch (Exception $e) {
+    catatLog("ERROR FATAL: " . $e->getMessage());
+    ob_end_clean();
     http_response_code(500);
     echo json_encode(['error' => $e->getMessage()]);
 }

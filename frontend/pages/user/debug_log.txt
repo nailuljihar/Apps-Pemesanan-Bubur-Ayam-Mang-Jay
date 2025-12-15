@@ -1,0 +1,17 @@
+[2025-12-15 17:21:21] --- REQUEST BARU MASUK ---
+[2025-12-15 17:21:21] Library Vendor berhasil di-load.
+[2025-12-15 17:21:21] Data Mentah dari JS: {"order_id":"JAY-6940438e85e93-1765819278","gross_amount":19000,"items":[{"id":3,"price":9000,"quantity":1,"name":"Bubur Biasa"},{"id":1,"price":10000,"quantity":1,"name":"Bubur Jumbo"}],"customer":{"first_name":"jhr-07","email":"user@example.com","phone":"08123456789"}}
+[2025-12-15 17:21:21] Data Valid. Order ID: JAY-6940438e85e93-1765819278 | Total: 19000
+[2025-12-15 17:21:21] Mengirim request ke Midtrans...
+[2025-12-15 17:21:29] --- REQUEST BARU MASUK ---
+[2025-12-15 17:21:29] Library Vendor berhasil di-load.
+[2025-12-15 17:21:29] Data Mentah dari JS: {"order_id":"JAY-69404396d6a9c-1765819286","gross_amount":19000,"items":[{"id":3,"price":9000,"quantity":1,"name":"Bubur Biasa"},{"id":1,"price":10000,"quantity":1,"name":"Bubur Jumbo"}],"customer":{"first_name":"jhr-07","email":"user@example.com","phone":"08123456789"}}
+[2025-12-15 17:21:29] Data Valid. Order ID: JAY-69404396d6a9c-1765819286 | Total: 19000
+[2025-12-15 17:21:29] Mengirim request ke Midtrans...
+[2025-12-15 17:24:00] --- REQUEST BARU MASUK ---
+[2025-12-15 17:24:00] Library Vendor berhasil di-load.
+[2025-12-15 17:24:00] Data Mentah dari JS: {"order_id":"JAY-69404396d6a9c-1765819286","gross_amount":19000,"items":[{"id":3,"price":9000,"quantity":1,"name":"Bubur Biasa"},{"id":1,"price":10000,"quantity":1,"name":"Bubur Jumbo"}],"customer":{"first_name":"jhr-07","email":"user@example.com","phone":"08123456789"}}
+[2025-12-15 17:24:00] Data Valid. Order ID: JAY-69404396d6a9c-1765819286 | Total: 19000
+[2025-12-15 17:24:00] Mengirim request ke Midtrans...
+[2025-12-15 17:26:20] Mengirim request ke Midtrans... (Order: JAY-694044b96bff6-1765819577)
+[2025-12-15 17:26:20] BERHASIL! Token: 016047a5-b159-47a6-8e48-199e285abe18

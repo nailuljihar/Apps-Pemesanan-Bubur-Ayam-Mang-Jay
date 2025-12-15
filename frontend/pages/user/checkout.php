@@ -1,150 +1,155 @@
 <?php
-// Di sini lo bisa tambahin logika buat ambil data cart dari session, dll.
-// Untuk contoh ini, kita hardcode aja ya.
-$nama_produk = "Bubur Ayam Jumbo";
-$harga = 10000;
-$order_id = "BUBUR-" . time(); // Bikin Order ID unik
+session_start();
+// Cek dulu, kalau keranjang kosong, tendang balik ke menu
+if (empty($_SESSION['keranjang'])) {
+    echo "<script>alert('Keranjang masih kosong, Bro!'); window.location.href='index.php';</script>";
+    exit;
+}
+
+// Hitung Total Belanja & Siapkan Data Item buat dikirim ke Midtrans/Backend
+$total_harga = 0;
+$item_details = []; // Array buat nampung detail item
+
+foreach ($_SESSION['keranjang'] as $id_produk => $item) {
+    $subtotal = $item['harga'] * $item['jumlah'];
+    $total_harga += $subtotal;
+    
+    // Masukkan ke format item_details Midtrans
+    $item_details[] = [
+        'id'       => $id_produk,
+        'price'    => intval($item['harga']),
+        'quantity' => intval($item['jumlah']),
+        'name'     => substr($item['nama'], 0, 50) // Midtrans limit nama item 50 char
+    ];
+}
+
+// Order ID Unik
+$order_id = "JAY-" . uniqid() . "-" . time(); 
 ?>
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Checkout - BUBUR AYAM BANG JAY</title>
-    
     <script type="text/javascript"
       src="https://app.sandbox.midtrans.com/snap/snap.js"
       data-client-key="SB-Mid-client-p03qwXbZBJ7PooX6"></script> 
-      <style>
-        /* Bikin style-nya mirip sama web lo */
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            margin: 0;
-            padding: 0;
+    <link rel="stylesheet" href="../../css/styles.css"> <style>
+        /* Override dikit buat halaman checkout */
+        body { background-color: #f7f0e6; }
+        .checkout-container {
+            max-width: 800px; margin: 50px auto; background: white; padding: 30px;
+            border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
-        .container {
-            max-width: 600px;
-            margin: 50px auto;
-            padding: 30px;
-            background-color: #fff;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-        h2 {
-            color: #333;
-            border-bottom: 2px solid #f0f0f0;
-            padding-bottom: 10px;
-        }
-        .order-details {
-            margin-bottom: 25px;
-        }
-        .order-details p {
-            font-size: 18px;
-            color: #555;
-            margin: 10px 0;
-        }
-        .order-details span {
-            float: right;
-            font-weight: bold;
-            color: #222;
-        }
-        /* Styling tombol biar sama kayak di web lo */
+        .table-checkout { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        .table-checkout th, .table-checkout td { padding: 12px; border-bottom: 1px solid #ddd; text-align: left; }
+        .total-row { font-weight: bold; font-size: 1.2em; color: var(--warna-primer); }
         .btn-bayar {
-            display: inline-block;
-            background-color: #1abc9c; /* Warna hijau/teal dari tombol lo */
-            color: #ffffff;
-            padding: 12px 25px;
-            font-size: 16px;
-            font-weight: bold;
-            text-align: center;
-            text-decoration: none;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
+            display: block; width: 100%; background-color: #00796b; color: white;
+            padding: 15px; border: none; border-radius: 5px; font-size: 1.1em;
+            cursor: pointer; text-align: center; font-weight: bold;
         }
-        .btn-bayar:hover {
-            background-color: #16a085;
-        }
+        .btn-bayar:hover { background-color: #004d40; }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <h2>Detail Pesanan</h2>
-        <div class="order-details">
-            <p>Produk: <span><?php echo $nama_produk; ?></span></p>
-            <p>Total Harga: <span>Rp. <?php echo number_format($harga, 0, ',', '.'); ?></span></p>
-        </div>
+    <div class="checkout-container">
+        <h2 style="margin-bottom: 20px; color: #333;">Konfirmasi Pesanan</h2>
+        
+        <table class="table-checkout">
+            <thead>
+                <tr>
+                    <th>Menu</th>
+                    <th>Harga</th>
+                    <th>Qty</th>
+                    <th>Subtotal</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($_SESSION['keranjang'] as $itm): ?>
+                <tr>
+                    <td><?= $itm['nama'] ?></td>
+                    <td>Rp <?= number_format($itm['harga'], 0, ',', '.') ?></td>
+                    <td><?= $itm['jumlah'] ?></td>
+                    <td>Rp <?= number_format($itm['harga'] * $itm['jumlah'], 0, ',', '.') ?></td>
+                </tr>
+                <?php endforeach; ?>
+                <tr class="total-row">
+                    <td colspan="3" style="text-align: right;">Total Bayar:</td>
+                    <td>Rp <?= number_format($total_harga, 0, ',', '.') ?></td>
+                </tr>
+            </tbody>
+        </table>
 
         <button id="pay-button" class="btn-bayar">BAYAR SEKARANG</button>
+        <br>
+        <a href="index.php" style="display:block; text-align:center; margin-top:10px; text-decoration:none; color: #666;">&larr; Kembali ke Menu</a>
     </div>
 
     <script type="text/javascript">
-        // Ambil tombol bayar
         var payButton = document.getElementById('pay-button');
 
-        // Kasih event click
         payButton.onclick = function(){
-            // Tampilkan loading atau disable tombol biar ga di-klik berkali-kali
             payButton.disabled = true;
-            payButton.innerHTML = "Loading...";
+            payButton.innerHTML = "Memproses...";
 
-            // Panggil backend (proses_pembayaran.php) untuk dapetin Snap Token
+            // Kita kirim Data Lengkap ke Backend
+            const transactionData = {
+                order_id: '<?= $order_id ?>',
+                gross_amount: <?= $total_harga ?>,
+                // Kirim detail item biar muncul di email invoice Midtrans
+                items: <?= json_encode($item_details) ?>, 
+                // Data customer dummy (nanti bisa diambil dari session login)
+                customer: {
+                    first_name: "<?= $_SESSION['username'] ?? 'Pelanggan' ?>",
+                    email: "user@example.com",
+                    phone: "08123456789"
+                }
+            };
+
             fetch('proses_pembayaran.php', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                // Kirim data pesanan ke backend
-                body: JSON.stringify({
-                    order_id: '<?php echo $order_id; ?>',
-                    harga: <?php echo $harga; ?>,
-                    nama_produk: '<?php echo $nama_produk; ?>'
-                })
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(transactionData)
             })
             .then(response => response.json())
             .then(data => {
                 if(data.token){
-                    // Kalo dapet token, buka pop-up Midtrans
                     window.snap.pay(data.token, {
                         onSuccess: function(result){
-                            /* Kasih notif sukses */
-                            alert("Pembayaran sukses!"); 
-                            console.log(result);
-                            // Arahin ke halaman status pesanan, dll.
-                            // window.location.href = "/status_sukses.php"; 
+                            alert("Pembayaran Berhasil!"); 
+                            // Opsi: Redirect ke halaman 'clear_cart.php' untuk hapus session keranjang
+                            window.location.href = "index.php"; 
                         },
                         onPending: function(result){
-                            /* Kasih notif pending */
-                            alert("Menunggu pembayaran!"); 
+                            alert("Menunggu Pembayaran!"); 
                             console.log(result);
                         },
                         onError: function(result){
-                            /* Kasih notif error */
-                            alert("Pembayaran gagal!"); 
+                            alert("Pembayaran Gagal!"); 
                             console.log(result);
+                            payButton.disabled = false;
+                            payButton.innerHTML = "BAYAR SEKARANG";
                         },
                         onClose: function(){
-                            /* Kalo pop-up ditutup sebelum bayar */
-                            alert('Anda menutup pop-up tanpa menyelesaikan pembayaran');
-                            // Aktifin lagi tombolnya
+                            alert('Pop-up ditutup!');
                             payButton.disabled = false;
                             payButton.innerHTML = "BAYAR SEKARANG";
                         }
                     });
                 } else {
-                    alert('Gagal mendapatkan token pembayaran.');
+                    console.error("Token error:", data);
+                    alert('Gagal request token: ' + (data.error || 'Unknown Error'));
                     payButton.disabled = false;
                     payButton.innerHTML = "BAYAR SEKARANG";
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert('Terjadi kesalahan. Cek konsol.');
+                alert('Terjadi kesalahan koneksi.');
                 payButton.disabled = false;
                 payButton.innerHTML = "BAYAR SEKARANG";
             });
