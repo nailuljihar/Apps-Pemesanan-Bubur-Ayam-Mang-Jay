@@ -239,7 +239,7 @@ body {
 .detail-content-wrapper { display: flex; gap: 30px; }
 
 .menu-image-section { position: relative; flex: 1; }
-.menu-image-section img { width: 100%; height: auto; border-radius: 5px; }
+.menu-image-section img { width: 50%; height: auto; border-radius: 5px; }
 
 .harga-badge {
     position: absolute;
@@ -292,4 +292,165 @@ body {
     cursor: pointer;
     align-self: flex-end; 
     margin-top: 20px;
+}
+
+/* --- TAMBAHAN STYLE UNTUK USER PAGE --- */
+
+/* Hero Section (Banner Atas) */
+.hero-section {
+    background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('../assets/images/bubur-ayam1.jpg'); /* Pastikan path gambar benar */
+    background-size: cover;
+    background-position: center;
+    color: white;
+    padding: 100px 20px;
+    text-align: center;
+    border-radius: 0 0 20px 20px;
+    margin-bottom: 30px;
+}
+
+.hero-section h1 {
+    font-size: 3rem;
+    margin-bottom: 10px;
+    font-weight: 800;
+}
+
+.hero-section p {
+    font-size: 1.2rem;
+    margin-bottom: 20px;
+}
+
+/* Search Bar */
+.search-container {
+    max-width: 600px;
+    margin: 0 auto 40px auto;
+    position: relative;
+}
+
+.search-input {
+    width: 100%;
+    padding: 15px 25px;
+    border-radius: 50px;
+    border: 1px solid #ddd;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    font-size: 16px;
+    transition: 0.3s;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: var(--warna-primer);
+    box-shadow: 0 5px 20px rgba(46, 204, 113, 0.3);
+}
+
+/* Grid Menu Makanan */
+.menu-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 25px;
+    padding: 0 20px;
+    max-width: 1200px;
+    margin: 0 auto 50px auto;
+}
+
+/* Card Menu */
+.menu-card {
+    background: white;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+    transition: transform 0.3s, box-shadow 0.3s;
+    border: 1px solid #eee;
+    display: flex;
+    flex-direction: column;
+}
+
+.menu-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+}
+
+.menu-img {
+    height: 200px;
+    width: 100%;
+    object-fit: cover;
+}
+
+.menu-content {
+    padding: 20px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.menu-title {
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: #333;
+}
+
+.menu-desc {
+    font-size: 0.9rem;
+    color: #777;
+    margin-bottom: 15px;
+    flex-grow: 1; /* Supaya tombol selalu di bawah rata */
+}
+
+.menu-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: auto;
+}
+
+.menu-price {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: var(--warna-primer);
+}
+
+.btn-add-cart {
+    background-color: var(--warna-primer);
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: 0.2s;
+    font-size: 0.9rem;
+}
+
+.btn-add-cart:hover {
+    background-color: #27ae60;
+}
+
+/* Floating Cart Button (Opsional tapi Keren) */
+.floating-cart {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    background-color: var(--warna-primer);
+    color: white;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 24px;
+    box-shadow: 0 10px 25px rgba(46, 204, 113, 0.4);
+    cursor: pointer;
+    z-index: 1000;
+    text-decoration: none;
+}
+.cart-count {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: red;
+    color: white;
+    font-size: 12px;
+    padding: 4px 8px;
+    border-radius: 50%;
+    font-weight: bold;
 }

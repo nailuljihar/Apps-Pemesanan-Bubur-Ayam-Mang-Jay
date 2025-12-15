@@ -2,7 +2,7 @@
 session_start();
 // Cek apakah user sudah login sebagai admin
 if (!isset($_SESSION['role']) || $_SESSION['role'] != 'admin') {
-    header("Location: ../../user/login.php"); // Redirect kalau bukan admin
+    header("Location: ../../user/user-dashboard.php"); // Redirect kalau bukan admin
     exit();
 }
 ?>
