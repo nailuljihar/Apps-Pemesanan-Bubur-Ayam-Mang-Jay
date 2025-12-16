@@ -1,86 +1,116 @@
 <?php
-// === KONFIGURASI DEBUGGING (TETAP DIPAKAI BUAT JAGA-JAGA) ===
-$log_file = 'debug_log.txt'; 
-function catatLog($pesan) {
-    global $log_file;
-    $isi = "[" . date('Y-m-d H:i:s') . "] " . $pesan . "\n";
-    file_put_contents($log_file, $isi, FILE_APPEND);
+session_start();
+require_once '../../../backend/config/koneksi.php';
+require_once '../../../vendor/autoload.php'; // Load Library Midtrans
+
+// 1. Cek Login & Keranjang
+if (!isset($_SESSION['id_users'])) {
+    header("Location: ../../../index.php"); // Tendang kalau belum login
+    exit;
 }
 
-// Tahan output browser
-ob_start(); 
-ini_set('display_errors', 0);
-error_reporting(E_ALL);
+if (empty($_SESSION['keranjang'])) {
+    echo "<script>alert('Keranjang kosong!'); window.location='index.php';</script>";
+    exit;
+}
 
-header('Content-Type: application/json');
+// 2. Setup Midtrans
+\Midtrans\Config::$serverKey = 'SB-Mid-server-9nWvHSWmVVj4U90WuCfqJ-67'; // PAKE SERVER KEY LO
+\Midtrans\Config::$isProduction = false;
+\Midtrans\Config::$isSanitized = true;
+\Midtrans\Config::$is3ds = true;
+
+// 3. Siapkan Data Transaksi
+$id_user = $_SESSION['id_users'];
+$nama_user = $_SESSION['nama_lengkap']; // Pastikan session ini ada pas login
+$email_user = $_SESSION['email'] ?? ''; // Default kalau kosong
+$no_hp = $_SESSION['no_hp'] ?? '';
+
+// Bikin Order ID Unik (ORD-WAKTU-IDUSER) biar gak duplikat
+$order_id = "ORD-" . time() . "-" . $id_user; 
+
+// Hitung Total & Siapkan Item Details buat Midtrans
+$total_bayar = 0;
+$item_details = [];
+
+foreach ($_SESSION['keranjang'] as $id_produk => $item) {
+    $subtotal = $item['harga'] * $item['jumlah'];
+    $total_bayar += $subtotal;
+
+    $item_details[] = [
+        'id' => $id_produk,
+        'price' => $item['harga'],
+        'quantity' => $item['jumlah'],
+        'name' => substr($item['nama_produk'], 0, 50) // Midtrans batesin panjang nama
+    ];
+}
+
+// Parameter Transaksi buat dikirim ke Midtrans
+$transaction_details = [
+    'order_id' => $order_id,
+    'gross_amount' => $total_bayar,
+];
+
+$customer_details = [
+    'first_name' => $nama_user,
+    'email' => $email_user,
+    'phone' => $no_hp,
+];
+
+// Tentukan alamat website kamu
+// PENTING: Ganti 'http://localhost/folder-kamu' sesuai alamat asli di browser kamu!
+$base_url = "http://localhost/Apps-Pemesanan-Bubur-Ayam-Mang-Jay/frontend/pages/user/riwayat.php";
+
+$midtrans_params = [
+    'transaction_details' => $transaction_details,
+    'item_details'      => $item_details,
+    'customer_details'  => $customer_details,
+    // TAMBAHKAN INI:
+    'callbacks' => [
+        'finish' => $base_url . '/riwayat.php?status=sukses'
+    ]
+];
 
 try {
-    // 1. LOAD LIBRARY
-    require_once __DIR__ . '/../../../vendor/autoload.php';
+    // 4. Minta Snap Token ke Midtrans
+    $snapToken = \Midtrans\Snap::getSnapToken($midtrans_params);
 
-    // 2. KONFIGURASI MIDTRANS
-    \Midtrans\Config::$serverKey = 'SB-Mid-server-9nWvHSWmVVj4U90WuCfqJ-67'; 
-    \Midtrans\Config::$isProduction = false;
-    \Midtrans\Config::$isSanitized = true;
-    \Midtrans\Config::$is3ds = true;
-
-    // 3. BACA DATA (DENGAN MODE ARRAY)
-    $json_mentah = file_get_contents('php://input');
+    // 5. Simpan ke Database (Tabel Transaksi)
+    // Status awal 'Pending', metode 'qris' (bisa diubah user nanti pas bayar), jenis 'online'
+    $query_transaksi = "INSERT INTO transaksi (id_user, order_id, tanggal, jenis_transaksi, total_pendapatan, metode_pembayaran, status, snap_token, catatan) 
+                        VALUES (?, ?, NOW(), 'online', ?, 'qris', 'Pending', ?, 'Pemesanan Web')";
     
-    // PERUBAHAN PENTING DI SINI: tambahkan param 'true' agar jadi Array
-    $data = json_decode($json_mentah, true); 
+    $stmt = $koneksi->prepare($query_transaksi);
+    $stmt->bind_param("isis", $id_user, $order_id, $total_bayar, $snapToken);
+    
+    if ($stmt->execute()) {
+        $id_transaksi_baru = $koneksi->insert_id; // Ambil ID Auto Increment
 
-    if (json_last_error() !== JSON_ERROR_NONE) {
-        throw new Exception("JSON Invalid");
-    }
+        // 6. Simpan Detail Transaksi (Looping keranjang)
+        $query_detail = "INSERT INTO detail_transaksi (id_transaksi, id_produk, jumlah, subtotal, tanggal) VALUES (?, ?, ?, ?, NOW())";
+        $stmt_detail = $koneksi->prepare($query_detail);
 
-    // Validasi Data
-    if (empty($data['order_id']) || empty($data['gross_amount'])) {
-        throw new Exception("Data tidak lengkap (Order ID/Gross Amount hilang)");
-    }
-
-    // 4. SUSUN PARAMETER (Explicit Casting biar Aman 100%)
-    // Kita susun ulang items-nya biar formatnya Array murni dan tipe datanya pas
-    $items_fixed = [];
-    if (isset($data['items']) && is_array($data['items'])) {
-        foreach ($data['items'] as $item) {
-            $items_fixed[] = [
-                'id'       => (string) $item['id'],       // Midtrans minta ID string
-                'price'    => (int) $item['price'],       // Midtrans minta Price integer
-                'quantity' => (int) $item['quantity'],    // Midtrans minta Qty integer
-                'name'     => (string) $item['name']
-            ];
+        foreach ($_SESSION['keranjang'] as $id_produk => $item) {
+            $subtotal = $item['harga'] * $item['jumlah'];
+            $stmt_detail->bind_param("iiii", $id_transaksi_baru, $id_produk, $item['jumlah'], $subtotal);
+            $stmt_detail->execute();
         }
+
+        // 7. Kosongkan Keranjang & Redirect
+        unset($_SESSION['keranjang']);
+        
+        // Lempar ke halaman Riwayat biar user bisa langsung bayar
+        echo "<script>
+            alert('Pesanan berhasil dibuat! Silakan lakukan pembayaran.');
+            window.location = 'riwayat.php'; 
+        </script>";
+
+    } else {
+        throw new Exception("Gagal menyimpan transaksi ke database.");
     }
-
-    $params = array(
-        'transaction_details' => array(
-            'order_id' => $data['order_id'],
-            'gross_amount' => (int)$data['gross_amount'],
-        ),
-        'item_details' => $items_fixed, // Pakai array yang sudah kita perbaiki
-        'customer_details' => array(
-            'first_name' => $data['customer']['first_name'] ?? 'Pelanggan',
-            'email' => $data['customer']['email'] ?? 'email@contoh.com',
-            'phone' => $data['customer']['phone'] ?? '08123456789',
-        ),
-    );
-
-    // 5. MINTA SNAP TOKEN
-    catatLog("Mengirim request ke Midtrans... (Order: " . $data['order_id'] . ")");
-    
-    $snapToken = \Midtrans\Snap::getSnapToken($params);
-    
-    catatLog("BERHASIL! Token: " . $snapToken);
-
-    // 6. KIRIM HASIL
-    ob_end_clean();
-    echo json_encode(['token' => $snapToken]);
 
 } catch (Exception $e) {
-    catatLog("ERROR FATAL: " . $e->getMessage());
-    ob_end_clean();
-    http_response_code(500);
-    echo json_encode(['error' => $e->getMessage()]);
+    echo "Terjadi Kesalahan: " . $e->getMessage();
+    // Bisa tambah tombol kembali disini
 }
 ?>

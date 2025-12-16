@@ -18,7 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $_SESSION['keranjang'][$id]['jumlah'] += 1; // Kalau ada, tambah jumlahnya
     } else {
         $_SESSION['keranjang'][$id] = [
-            'nama' => $nama,
+            'nama_produk' => $nama,
             'harga' => $harga,
             'jumlah' => 1
         ]; // Kalau belum, buat baru

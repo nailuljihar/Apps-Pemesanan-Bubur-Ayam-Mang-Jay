@@ -19,7 +19,7 @@ if (isset($_POST['login'])) {
         // Verifikasi Password Hash
         if (password_verify($password, $row['password'])) { 
             // Set Session
-            $_SESSION['user_id'] = $row['id'];
+            $_SESSION['id_users'] = $row['id_users'];
             $_SESSION['username'] = $row['username'];
             $_SESSION['role'] = $row['role']; 
             $_SESSION['nama_lengkap'] = $row['nama_lengkap'];

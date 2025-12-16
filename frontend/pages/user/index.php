@@ -20,6 +20,13 @@ if (!empty($search_keyword)) {
 }
 $query .= " ORDER BY nama_produk ASC";
 
+// Logika Best Seller: Produk yang paling banyak terjual di detail_transaksi
+// Kita pake subquery biar otomatis 'realtime' ngitungnya
+$query = "SELECT p.*, 
+          (SELECT COALESCE(SUM(jumlah), 0) FROM detail_transaksi dt WHERE dt.id_produk = p.id_produk) as total_terjual 
+          FROM produk p 
+          ORDER BY total_terjual DESC"; 
+
 $result = $koneksi->query($query);
 ?>
 
@@ -92,10 +99,16 @@ $result = $koneksi->query($query);
                     <h1>BANG JAY</h1>
                 </div>
                 <div class="welcome-section">
-                    <span>Selamat Datang, <b class="user-name"><?= $_SESSION['username'] ?></b></span>
+                    <span>Selamat Datang, <b class="user-name"><?= $_SESSION['nama_lengkap'] ?></b></span>
                     <br>
-                    <a href="../../../index.php" style="color: red; font-size: 0.8em; text-decoration: none;">LOG OUT</a>
+                    <div style="margin-top: 5px; font-size: 0.9em;">
+                        <a href="profile.php" style="margin-right: 10px; color: #333;"><i class="fa fa-user-edit"></i> Edit Profil</a>
+                        <a href="riwayat.php" style="margin-right: 10px; color: #333;"><i class="fa fa-history"></i> Riwayat</a>
+                        <a href="../../../index.php" style="color: red; text-decoration: none;">Logout</a>
+                    </div>
                 </div>
+                        <a href="keranjang.php" class="floating-cart"> <i class="fa-solid fa-cart-shopping"></i>
+                        </a>
             </div>
 
             <div class="search-bar-container">
@@ -122,44 +135,40 @@ $result = $koneksi->query($query);
                 <img src="../../assets/images/bubur-ayam1.jpg" alt="Bubur Ayam Banner" style="width: 35%; max-width: 300px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
             </section>
 
-            <section id="area-menu" style="padding: 10px 0;">
-                <nav class="menu-tabs">
-                    <a href="?tab=bestseller" class="<?= $current_tab == 'bestseller' ? 'active' : '' ?>">BEST SELLER</a>
-                    <a href="?tab=baru" class="<?= $current_tab == 'baru' ? 'active' : '' ?>">BARU</a>
-                    <a href="?tab=popular" class="<?= $current_tab == 'popular' ? 'active' : '' ?>">POPULAR</a>
-                    <a href="index.php" class="tampilkan-semua">Tampilkan Semua</a>
-                </nav>
-
-                <div class="product-listing-grid">
-                    <?php if ($result->num_rows > 0): ?>
-                        <?php while($row = $result->fetch_assoc()): ?>
-                            <div class="product-card">
-                                <img src="../../assets/images/<?= !empty($row['gambar']) ? $row['gambar'] : 'bubur-ayam1.jpg' ?>" 
-                                     alt="<?= $row['nama_produk'] ?>">
-                                
-                                <p class="product-name"><?= $row['nama_produk'] ?></p>
-                                <p class="product-price">Rp <?= number_format($row['harga'], 0, ',', '.') ?></p>
-                                
-                                <form action="tambah_keranjang.php" method="POST">
-                                    <input type="hidden" name="id_produk" value="<?= $row['id'] ?>">
-                                    <input type="hidden" name="nama_produk" value="<?= $row['nama_produk'] ?>">
-                                    <input type="hidden" name="harga" value="<?= $row['harga'] ?>">
-                                    <button type="submit" class="btn-beli-mini">
-                                        <i class="fa fa-shopping-cart"></i> Beli
-                                    </button>
-                                </form>
-                            </div>
-                        <?php endwhile; ?>
-                    <?php else: ?>
-                        <p style="text-align: center; width: 100%; color: #888;">Menu tidak ditemukan.</p>
-                    <?php endif; ?>
+            <div class="product-listing-grid">
+    <?php 
+    $rank = 0; // Buat nentuin top 3
+    while($row = $result->fetch_assoc()): 
+        $rank++;
+        $is_best_seller = ($rank <= 3 && $row['total_terjual'] > 0); // Top 3 dan pernah terjual
+    ?>
+        <div class="product-card" style="position: relative;">
+            
+            <?php if($is_best_seller): ?>
+                <div style="position: absolute; top: 10px; right: 10px; background: #ff9800; color: white; padding: 5px 10px; border-radius: 20px; font-size: 0.7em; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
+                    <i class="fa-solid fa-crown"></i> BEST SELLER
                 </div>
+            <?php endif; ?>
+
+            <img src="../../assets/images/<?= !empty($row['gambar']) ? $row['gambar'] : 'bubur-ayam1.jpg' ?>" alt="<?= $row['nama_produk'] ?>">
+            
+            <p class="product-name"><?= $row['nama_produk'] ?></p>
+            <p class="product-price">Rp <?= number_format($row['harga'], 0, ',', '.') ?></p>
+            
+            <form action="tambah_keranjang.php" method="POST">
+                <input type="hidden" name="id_produk" value="<?= $row['id_produk'] ?>"> <input type="hidden" name="nama_produk" value="<?= $row['nama_produk'] ?>">
+                <input type="hidden" name="harga" value="<?= $row['harga'] ?>">
+                <button type="submit" class="btn-beli-mini"><i class="fa fa-shopping-cart"></i> Beli</button>
+            </form>
+        </div>
+    <?php endwhile; ?>
+    </div>
 
             </section>
         </main>
     </div>
 
-    <a href="checkout.php" class="floating-cart">
+    <a href="keranjang.php" class="floating-cart">
         <i class="fa-solid fa-cart-shopping"></i>
         <?php 
         $jumlah_item = isset($_SESSION['keranjang']) ? count($_SESSION['keranjang']) : 0;
