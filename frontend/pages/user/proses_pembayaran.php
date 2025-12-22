@@ -1,5 +1,6 @@
 <?php
 session_start();
+$id_user_login = $_SESSION['id_users'] ?? NULL;
 require_once '../../../backend/config/koneksi.php';
 require_once '../../../vendor/autoload.php'; // Load Library Midtrans
 
@@ -59,7 +60,7 @@ $customer_details = [
 
 // Tentukan alamat website kamu
 // PENTING: Ganti 'http://localhost/folder-kamu' sesuai alamat asli di browser kamu!
-$base_url = "http://localhost/Apps-Pemesanan-Bubur-Ayam-Mang-Jay/frontend/pages/user/riwayat.php";
+$base_url = "http://localhost/Apps-Pemesanan-Bubur-Ayam-Mang-Jay/frontend/pages/user/";
 
 $midtrans_params = [
     'transaction_details' => $transaction_details,
@@ -80,8 +81,22 @@ try {
     $query_transaksi = "INSERT INTO transaksi (id_user, order_id, tanggal, jenis_transaksi, total_pendapatan, metode_pembayaran, status, snap_token, catatan) 
                         VALUES (?, ?, NOW(), 'online', ?, 'qris', 'Pending', ?, 'Pemesanan Web')";
     
-    $stmt = $koneksi->prepare($query_transaksi);
-    $stmt->bind_param("isis", $id_user, $order_id, $total_bayar, $snapToken);
+    // UPDATE QUERY INSERT
+    $stmt = $koneksi->prepare("INSERT INTO transaksi 
+        (id_transaksi, id_users, tanggal, jenis_transaksi, total_pendapatan, ongkir, nama_penerima, alamat_pengiriman, no_hp_penerima, status, metode_pembayaran, catatan) 
+        VALUES (?, ?, NOW(), 'online', ?, ?, ?, ?, ?, 'Pending', 'qris', ?)");
+    $stmt->bind_param("siissssss", 
+        $data['order_id'], 
+        $id_user_login,      // Masukkan ID User di sini
+        $data['gross_amount'], 
+        $data['ongkir'], 
+        $data['nama_penerima'], 
+        $data['alamat'], 
+        $data['no_hp'], 
+        $data['catatan']
+    );
+
+    $stmt->execute();
     
     if ($stmt->execute()) {
         $id_transaksi_baru = $koneksi->insert_id; // Ambil ID Auto Increment

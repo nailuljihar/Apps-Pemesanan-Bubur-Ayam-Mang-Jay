@@ -26,9 +26,10 @@ $query_pesanan = "SELECT
                     tanggal,
                     total_pendapatan,
                     status,
+                    order_id,
                     nama_lengkap  -- << Ini diambil dari tabel USERS
                   FROM transaksi 
-                  JOIN users ON id_transaksi = id_users  -- << CEK DB LO: 'id_user' atau 'user_id'?
+                  JOIN users ON id_user = id_users  -- << CEK DB LO: 'id_user' atau 'user_id'?
                   ORDER BY total_pendapatan DESC";
 
 $result_pesanan = $koneksi->query($query_pesanan);

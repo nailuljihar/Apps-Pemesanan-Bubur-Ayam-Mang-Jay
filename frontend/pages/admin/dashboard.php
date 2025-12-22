@@ -1,10 +1,32 @@
 <?php
 session_start();
-// Cek apakah user sudah login sebagai admin
+require_once '../../../backend/config/koneksi.php';
+
 if (!isset($_SESSION['role']) || $_SESSION['role'] != 'admin') {
-    header("Location: ../../user/user-dashboard.php"); // Redirect kalau bukan admin
+    header("Location: ../../user/login.php");
     exit();
 }
+
+// 1. Hitung Pesanan Hari Ini
+$today = date('Y-m-d');
+$query_pesanan = "SELECT COUNT(*) as total FROM transaksi WHERE DATE(tanggal) = '$today'";
+$res_pesanan = $koneksi->query($query_pesanan);
+$jml_pesanan = $res_pesanan->fetch_assoc()['total'];
+
+// 2. Hitung Pendapatan Hari Ini (Cuma yang Lunas)
+$query_omset = "SELECT SUM(total_pendapatan) as omset FROM transaksi WHERE DATE(tanggal) = '$today' AND status = 'Lunas'";
+$res_omset = $koneksi->query($query_omset);
+$omset_today = $res_omset->fetch_assoc()['omset'] ?? 0;
+
+// 3. Hitung Total Menu
+$query_menu = "SELECT COUNT(*) as total FROM produk";
+$res_menu = $koneksi->query($query_menu);
+$total_menu = $res_menu->fetch_assoc()['total'];
+
+// 4. Hitung Pesanan Pending (Perlu Konfirmasi)
+$query_pending = "SELECT COUNT(*) as total FROM transaksi WHERE status = 'Pending'";
+$res_pending = $koneksi->query($query_pending);
+$pending_count = $res_pending->fetch_assoc()['total'];
 ?>
 
 <!DOCTYPE html>
@@ -86,6 +108,23 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] != 'admin') {
                 </div>
             </div>
         </div>
+
+        <div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-info">
+            <h3><?= $jml_pesanan ?></h3> <p>Pesanan Hari Ini</p>
+        </div>
+        <div class="stat-icon"><i class="fa-solid fa-clipboard-list"></i></div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-info">
+            <h3>Rp <?= number_format($omset_today/1000, 1) ?>jt</h3> <p>Pendapatan Hari Ini</p>
+        </div>
+        <div class="stat-icon"><i class="fa-solid fa-money-bill-wave"></i></div>
+    </div>
+    
+    </div>
 
         <div class="table-container">
             <div class="table-header">Pesanan Terbaru</div>

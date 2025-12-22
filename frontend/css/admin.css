@@ -235,3 +235,86 @@ table tr:hover {
         margin-left: 70px;
     }
 }
+
+/* --- Tambahan untuk Layout User --- */
+.user-menu-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 20px;
+    padding: 20px;
+}
+
+.menu-item-card {
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    overflow: hidden;
+    transition: transform 0.2s;
+    display: flex;
+    flex-direction: column;
+}
+
+.menu-item-card:hover {
+    transform: translateY(-5px);
+}
+
+.menu-item-card img {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+}
+
+.menu-details {
+    padding: 15px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.menu-price {
+    color: #e67e22; /* Warna khas makanan */
+    font-weight: bold;
+    font-size: 1.1em;
+    margin: 10px 0;
+}
+
+/* --- Styling Alert Validasi --- */
+.alert {
+    padding: 15px;
+    margin-bottom: 20px;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    font-size: 0.9em;
+}
+
+.alert-success {
+    color: #155724;
+    background-color: #d4edda;
+    border-color: #c3e6cb;
+}
+
+.alert-danger {
+    color: #721c24;
+    background-color: #f8d7da;
+    border-color: #f5c6cb;
+}
+
+.alert-info {
+    color: #0c5460;
+    background-color: #d1ecf1;
+    border-color: #bee5eb;
+}
+
+/* Tombol Aksi di Keranjang */
+.btn-qty {
+    background: #eee;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+}
+.btn-delete {
+    color: red;
+    cursor: pointer;
+    background: none;
+    border: none;
+}

@@ -30,8 +30,10 @@ $harga = (int)$data['harga'];
 // status_aktif otomatis 1 (sesuai definisi tabel)
 
 // 6. Query SQL dengan Prepared Statement untuk mencegah SQL Injection
-$sql = "INSERT INTO produk (nama_produk, harga) VALUES (?, ?)";
+$gambar = $data['gambar'] ?? 'bubur-ayam1.jpg'; // Default gambar
+$sql = "INSERT INTO produk (nama_produk, harga, gambar) VALUES (?, ?, ?)";
 $stmt = $koneksi->prepare($sql);
+$stmt->bind_param("sis", $nama_produk, $harga, $gambar);
 
 // Cek jika prepared statement gagal
 if ($stmt === false) {

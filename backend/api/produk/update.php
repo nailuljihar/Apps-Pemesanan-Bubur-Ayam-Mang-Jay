@@ -25,8 +25,10 @@ $harga = (int)$data['harga'];
 $status_aktif = (int)$data['status_aktif']; // 0 atau 1
 
 // 5. Query SQL dengan Prepared Statement
-$sql = "UPDATE produk SET nama_produk = ?, harga = ?, status_aktif = ? WHERE id_produk = ?";
+$gambar = $data['gambar'];
+$sql = "UPDATE produk SET nama_produk = ?, harga = ?, status_aktif = ?, gambar = ? WHERE id_produk = ?";
 $stmt = $koneksi->prepare($sql);
+$stmt->bind_param("siisi", $nama_produk, $harga, $status_aktif, $gambar, $id_produk);
 
 if ($stmt === false) {
     http_response_code(500);

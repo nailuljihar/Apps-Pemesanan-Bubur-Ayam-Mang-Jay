@@ -1,91 +1,101 @@
 <?php
 session_start();
-// Helper fungsi format rupiah
-function formatRupiah($angka){
-    return "Rp " . number_format($angka,0,',','.');
+// Handle Update Jumlah (CRUD: Update)
+if(isset($_POST['update_qty'])) {
+    $id = $_POST['id_produk'];
+    $qty = intval($_POST['jumlah']);
+    if($qty > 0) {
+        $_SESSION['keranjang'][$id]['jumlah'] = $qty;
+    }
+}
+
+// Handle Hapus Item (CRUD: Delete)
+if(isset($_GET['hapus'])) {
+    $id = $_GET['hapus'];
+    unset($_SESSION['keranjang'][$id]);
+    header("Location: keranjang.php");
+    exit;
 }
 ?>
 
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <title>Keranjang Belanja - Bang Jay</title>
-    <link rel="stylesheet" href="../../css/styles.css">
+    <meta charset="UTF-8">
+    <title>Keranjang Belanja</title>
+    <link rel="stylesheet" href="../../css/admin.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        .cart-container { max-width: 900px; margin: 30px auto; padding: 20px; background: white; border-radius: 8px; }
-        .table-cart { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        .table-cart th, .table-cart td { padding: 15px; text-align: left; border-bottom: 1px solid #ddd; }
-        .qty-input { width: 50px; padding: 5px; text-align: center; }
-        .btn-update { background: #ffc107; border: none; padding: 5px 10px; cursor: pointer; border-radius: 3px; color: #000; font-size: 0.8em; }
-        .btn-delete { background: #dc3545; color: white; border: none; padding: 5px 10px; cursor: pointer; border-radius: 3px; text-decoration: none; font-size: 0.9em; }
-        .cart-summary { margin-top: 20px; text-align: right; }
-        .btn-checkout { background: #28a745; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block; }
-    </style>
 </head>
 <body>
+    <nav class="admin-sidebar">
+        <div class="sidebar-header"><h3>MANG JAY<br><small>Pelanggan</small></h3></div>
+        <ul class="sidebar-menu">
+            <li><a href="index.php"><i class="fa-solid fa-utensils"></i> <span>Pilih Menu</span></a></li>
+            <li><a href="keranjang.php" class="active"><i class="fa-solid fa-cart-shopping"></i> <span>Keranjang</span></a></li>
+            <li><a href="riwayat.php"><i class="fa-solid fa-clock-rotate-left"></i> <span>Riwayat</span></a></li>
+            <li><a href="profile.php"><i class="fa-solid fa-user-pen"></i> <span>Edit Profile</span></a></li>
+        </ul>
+    </nav>
 
-<div class="cart-container">
-    <h1><i class="fa-solid fa-cart-shopping"></i> Keranjang Anda</h1>
-
-    <?php if (empty($_SESSION['keranjang'])): ?>
-        <div style="text-align: center; padding: 50px;">
-            <h3>Keranjang masih kosong nih.</h3>
-            <p>Yuk pesen bubur dulu!</p>
-            <a href="index.php" style="color: blue; text-decoration: underline;">Kembali ke Menu</a>
-        </div>
-    <?php else: ?>
-        
-        <table class="table-cart">
-            <thead>
-                <tr>
-                    <th>Produk</th>
-                    <th>Harga</th>
-                    <th>Jumlah</th>
-                    <th>Subtotal</th>
-                    <th>Aksi</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php 
-                $total_bayar = 0;
-                foreach ($_SESSION['keranjang'] as $id_produk => $item): 
-                    $subtotal = $item['harga'] * $item['jumlah'];
-                    $total_bayar += $subtotal;
-                ?>
-                <tr>
-                    <td><strong><?= $item['nama_produk'] ?></strong></td>
-                    <td><?= formatRupiah($item['harga']) ?></td>
-                    <td>
-                        <form action="update_keranjang.php" method="POST" style="display:flex; gap:5px; align-items:center;">
-                            <input type="hidden" name="id_produk" value="<?= $id_produk ?>">
-                            <input type="number" name="jumlah" value="<?= $item['jumlah'] ?>" min="1" class="qty-input">
-                            <button type="submit" name="update_jumlah" class="btn-update" title="Update Jumlah">
-                                <i class="fa-solid fa-sync"></i>
-                            </button>
-                        </form>
-                    </td>
-                    <td><?= formatRupiah($subtotal) ?></td>
-                    <td>
-                        <a href="update_keranjang.php?action=delete&id=<?= $id_produk ?>" class="btn-delete" onclick="return confirm('Hapus menu ini?');">
-                            <i class="fa-solid fa-trash"></i> Hapus
-                        </a>
-                    </td>
-                </tr>
-                <?php endforeach; ?>
-            </tbody>
-        </table>
-
-        <div class="cart-summary">
-            <h3>Total Belanja: <?= formatRupiah($total_bayar) ?></h3>
-            <div style="margin-top: 20px;">
-                <a href="index.php" style="margin-right: 15px; color: #666; text-decoration: none;">Lanjut Belanja</a>
-                <a href="proses_pembayaran.php" class="btn-checkout">Bayar Sekarang <i class="fa-solid fa-arrow-right"></i></a>
-            </div>
+    <main class="admin-content">
+        <div class="content-header">
+            <h1>Keranjang Pesanan</h1>
         </div>
 
-    <?php endif; ?>
-</div>
+        <div class="table-container">
+            <?php if(empty($_SESSION['keranjang'])): ?>
+                <div class="alert alert-info">Keranjang kamu masih kosong. <a href="index.php">Pesan sekarang!</a></div>
+            <?php else: ?>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Menu</th>
+                            <th>Harga</th>
+                            <th style="width:150px;">Jumlah</th>
+                            <th>Subtotal</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php 
+                        $total_belanja = 0;
+                        foreach($_SESSION['keranjang'] as $id => $item): 
+                            $subtotal = $item['harga'] * $item['jumlah'];
+                            $total_belanja += $subtotal;
+                        ?>
+                        <tr>
+                            <td><?= $item['nama'] ?></td>
+                            <td>Rp <?= number_format($item['harga'],0,',','.') ?></td>
+                            <td>
+                                <form action="" method="POST" style="display:flex; gap:5px;">
+                                    <input type="hidden" name="id_produk" value="<?= $id ?>">
+                                    <input type="number" name="jumlah" value="<?= $item['jumlah'] ?>" min="1" style="width:60px; padding:5px;">
+                                    <button type="submit" name="update_qty" class="btn-qty" title="Update"><i class="fa fa-refresh"></i></button>
+                                </form>
+                            </td>
+                            <td>Rp <?= number_format($subtotal,0,',','.') ?></td>
+                            <td>
+                                <a href="keranjang.php?hapus=<?= $id ?>" class="btn-delete" onclick="return confirm('Hapus menu ini?')">
+                                    <i class="fa fa-trash"></i> Hapus
+                                </a>
+                            </td>
+                        </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="3" style="text-align:right; font-weight:bold;">Total Sementara:</td>
+                            <td colspan="2" style="font-weight:bold;">Rp <?= number_format($total_belanja,0,',','.') ?></td>
+                        </tr>
+                    </tfoot>
+                </table>
 
+                <div style="margin-top:20px; text-align:right;">
+                    <a href="index.php" class="tombol-abu" style="padding:10px 20px; text-decoration:none;">Tambah Menu Lain</a>
+                    <a href="checkout.php" class="tombol-biru" style="padding:10px 20px; text-decoration:none;">Lanjut ke Pembayaran <i class="fa fa-arrow-right"></i></a>
+                </div>
+            <?php endif; ?>
+        </div>
+    </main>
 </body>
 </html>
