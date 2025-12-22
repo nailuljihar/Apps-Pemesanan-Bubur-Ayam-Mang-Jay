@@ -1,43 +1,27 @@
 <?php
 session_start();
-
-// 1. INCLUDE KONEKSI
-// Pastikan path ini benar (naik 3 folder)
 include '../../../backend/config/koneksi.php'; 
 
-// 2. Definisi BASE_URL (Biar CSS gak error)
-if (!defined('BASE_URL')) {
-    define('BASE_URL', 'http://localhost/Apps-Pemesanan-Bubur-Ayam-Mang-Jay/');
-}
-
-// 3. Cek Login Admin
 if (!isset($_SESSION['role']) || $_SESSION['role'] != 'admin') {
-    header("Location: " . BASE_URL . "frontend/pages/user/login.php");
+    header("Location: ../../user/index.php"); // Redirect ke home user jika bukan admin
     exit();
 }
 
-// 4. QUERY DATA PESANAN (JOIN TABEL)
-// Penjelasan Logika JOIN:
-// "Ambil semua data dari tabel transaksi (t), GABUNGKAN dengan tabel users (u)
-//  DIMANA kolom 'id_user' di transaksi COCOK dengan 'id' di users."
-
+// QUERY DIPERBAIKI: Menggunakan LEFT JOIN agar pesanan Offline (yg tidak punya akun user) tetap muncul
+// Menggunakan alias t dan u untuk menghindari error 'ambiguous'
 $query_pesanan = "SELECT 
-                    id_transaksi,
-                    tanggal,
-                    total_pendapatan,
-                    status,
-                    order_id,
-                    nama_lengkap  -- << Ini diambil dari tabel USERS
-                  FROM transaksi 
-                  JOIN users ON id_user = id_users  -- << CEK DB LO: 'id_user' atau 'user_id'?
-                  ORDER BY total_pendapatan DESC";
+                    t.id_transaksi,
+                    t.tanggal,
+                    t.total_pendapatan,
+                    t.status,
+                    t.jenis_transaksi,
+                    t.nama_penerima,  -- Nama dari input manual (Offline/Online Guest)
+                    u.nama_lengkap    -- Nama dari akun user (Online Member)
+                  FROM transaksi t
+                  LEFT JOIN users u ON t.id_users = u.id_users 
+                  ORDER BY t.tanggal DESC";
 
 $result_pesanan = $koneksi->query($query_pesanan);
-
-// Debugging Cepat: Kalau query error, script akan mati dan kasih tau errornya
-if (!$result_pesanan) {
-    die("<h3>Error Query SQL:</h3>" . $koneksi->error . "<br><br><b>Saran Perbaikan:</b> Coba cek struktur tabel 'transaksi' di phpMyAdmin, apakah nama kolom penyambungnya <b>id_user</b> atau <b>user_id</b>? Ganti di kodingan baris 31 sesuai nama kolom yg benar.");
-}
 ?>
 
 <!DOCTYPE html>
@@ -46,8 +30,7 @@ if (!$result_pesanan) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Data Pesanan - Admin Bang Jay</title>
-    
-    <link rel="stylesheet" href="<?= BASE_URL ?>frontend/css/admin.css">
+    <link rel="stylesheet" href="../../css/admin.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
@@ -63,7 +46,7 @@ if (!$result_pesanan) {
             <li><a href="reports.php"><i class="fa-solid fa-chart-line"></i> <span>Laporan</span></a></li>
         </ul>
         <div class="sidebar-footer">
-            <a href="<?= BASE_URL ?>index.php" class="btn-logout" onclick="return confirm('Yakin ingin keluar?');">
+            <a href="../../../index.php" class="btn-logout" onclick="return confirm('Yakin ingin keluar?');">
                 <i class="fa-solid fa-right-from-bracket"></i> <span>Logout</span>
             </a>
         </div>
@@ -72,19 +55,19 @@ if (!$result_pesanan) {
     <main class="admin-content">
         <div class="content-header">
             <h1>Data Pesanan Masuk</h1>
-            <div class="user-info">
-                <i class="fa-solid fa-user-tie"></i> Admin
-            </div>
+            
+            <a href="tambah_pesanan.php" class="tombol-biru" style="text-decoration:none; font-size:0.9em;">
+                <i class="fa fa-plus-circle"></i> Pesanan Baru (Offline)
+            </a>
         </div>
 
         <div class="table-container">
-            <div class="table-header">Daftar Transaksi</div>
-            
             <table>
                 <thead>
                     <tr>
                         <th>ID</th>
                         <th>Tanggal</th>
+                        <th>Tipe</th>
                         <th>Pelanggan</th>
                         <th>Total</th>
                         <th>Status</th>
@@ -92,48 +75,61 @@ if (!$result_pesanan) {
                     </tr>
                 </thead>
                 <tbody>
-                    <?php if ($result_pesanan->num_rows > 0): ?>
-                        <?php while($row = $result_pesanan->fetch_assoc()): ?>
-                            <tr>
-                                <td>#<?= $row['id_transaksi'] ?></td>
-                                <td><?= date('d/m/Y H:i', strtotime($row['tanggal'])) ?></td>
-                                
-                                <td style="font-weight:bold; color:#00897b;">
-                                    <?= htmlspecialchars($row['nama_lengkap']) ?>
-                                </td>
-                                
-                                <td>Rp <?= number_format($row['total_pendapatan'], 0, ',', '.') ?></td>
-                                <td>
-                                    <?php 
-                                        $s = $row['status'];
-                                        $warnabel = 'gray';
-                                        if($s == 'Pending') $warnabel = '#f39c12'; // Oranye
-                                        if($s == 'Sukses' || $s == 'selesai') $warnabel = '#27ae60'; // Hijau
-                                        if($s == 'Batal') $warnabel = '#c0392b'; // Merah
-                                    ?>
-                                    <span style="background:<?= $warnabel ?>; color:white; padding:3px 8px; border-radius:4px; font-size:0.8em;">
-                                        <?= strtoupper($s) ?>
-                                    </span>
-                                </td>
-                                <td>
-                                    <a href="detail_pesanan.php?id=<?= $row['id_transaksi'] ?>" title="Lihat Detail">
-                                        <i class="fa-solid fa-eye" style="color:#2980b9; margin-right:5px;"></i>
-                                    </a>
-                                    <a href="#" title="Hapus" onclick="alert('Fitur hapus belum aktif')">
-                                        <i class="fa-solid fa-trash" style="color:#c0392b;"></i>
-                                    </a>
-                                </td>
-                            </tr>
-                        <?php endwhile; ?>
+    <?php if ($result_pesanan && $result_pesanan->num_rows > 0): ?>
+        <?php while($row = $result_pesanan->fetch_assoc()): ?>
+            <tr>
+                <td>#<?= htmlspecialchars($row['order_id'] ?? $row['id_transaksi']) ?></td>
+                <td><?= date('d/m/Y H:i', strtotime($row['tanggal'])) ?></td>
+                
+                <td>
+                    <?php if($row['jenis_transaksi'] == 'offline'): ?>
+                        <span style="background:#7f8c8d; color:white; padding:3px 8px; border-radius:4px; font-size:0.8em;">OFFLINE</span>
                     <?php else: ?>
-                        <tr>
-                            <td colspan="6" style="text-align:center; padding: 30px; color:gray;">
-                                <i class="fa-solid fa-box-open" style="font-size:2em; margin-bottom:10px;"></i><br>
-                                Belum ada data transaksi yang masuk.
-                            </td>
-                        </tr>
+                        <span style="background:#3498db; color:white; padding:3px 8px; border-radius:4px; font-size:0.8em;">ONLINE</span>
                     <?php endif; ?>
-                </tbody>
+                </td>
+
+                <td style="font-weight:bold; color:#2c3e50;">
+                    <?php 
+                        if (!empty($row['nama_lengkap'])) {
+                            echo htmlspecialchars($row['nama_lengkap']);
+                        } else {
+                            // Tambahkan '??' untuk menangani nilai NULL menjadi string kosong
+                            $nama_guest = $row['nama_penerima'] ?? 'Tanpa Nama'; 
+                            echo htmlspecialchars($nama_guest) . " <small>(Guest)</small>";
+                        }
+                    ?>
+                </td>
+                
+                <td>Rp <?= number_format($row['total_pendapatan'], 0, ',', '.') ?></td>
+                
+                <td>
+                    <?php 
+                        $s = $row['status'];
+                        $warnabel = 'gray';
+                        if($s == 'Pending') $warnabel = '#f39c12';
+                        if($s == 'Sukses' || $s == 'Selesai' || $s == 'Lunas') $warnabel = '#27ae60';
+                        if($s == 'Batal') $warnabel = '#c0392b';
+                    ?>
+                    <span style="background:<?= $warnabel ?>; color:white; padding:3px 8px; border-radius:4px; font-size:0.8em;">
+                        <?= strtoupper($s) ?>
+                    </span>
+                </td>
+                <td>
+                    <a href="#" onclick="alert('Fitur detail belum aktif')" title="Lihat Detail">
+                        <i class="fa-solid fa-eye" style="color:#2980b9;"></i>
+                    </a>
+                </td>
+            </tr>
+        <?php endwhile; ?>
+    <?php else: ?>
+        <tr>
+            <td colspan="7" style="text-align:center; padding: 30px; color:gray;">
+                Belum ada data transaksi.
+            </td>
+        </tr>
+    <?php endif; ?>
+</tbody>
             </table>
         </div>
     </main>

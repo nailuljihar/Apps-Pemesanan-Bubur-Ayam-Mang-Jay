@@ -52,7 +52,7 @@ if (!isset($_SESSION['id_users'])) {
 
 $id_user = $_SESSION['id_users'];
 // Ambil transaksi user ini
-$query = "SELECT * FROM transaksi WHERE id_user = ? ORDER BY tanggal DESC, id_transaksi DESC";
+$query = "SELECT * FROM transaksi WHERE id_users = ? ORDER BY tanggal DESC";
 $stmt = $koneksi->prepare($query);
 $stmt->bind_param("i", $id_user);
 $stmt->execute();
