@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: Dec 14, 2025 at 07:42 PM
+-- Generation Time: Dec 23, 2025 at 04:50 AM
 -- Server version: 8.0.30
 -- PHP Version: 8.1.10
 
@@ -45,32 +45,13 @@ INSERT INTO `detail_transaksi` (`id_detail`, `id_transaksi`, `id_produk`, `jumla
 (2, 1, 3, 1, 9000, '2025-11-02'),
 (3, 2, 2, 3, 21000, '2025-11-03'),
 (4, 3, 1, 3, 30000, '2025-11-04'),
-(5, 4, 2, 2, 14000, '2025-11-05');
-
--- --------------------------------------------------------
-
---
--- Table structure for table `pelanggan`
---
-
-CREATE TABLE `pelanggan` (
-  `id_pelanggan` int NOT NULL,
-  `nama_pelanggan` varchar(50) DEFAULT NULL,
-  `no_wa` varchar(15) DEFAULT NULL,
-  `alamat` varchar(100) DEFAULT NULL,
-  `tanggal_daftar` date DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
---
--- Dumping data for table `pelanggan`
---
-
-INSERT INTO `pelanggan` (`id_pelanggan`, `nama_pelanggan`, `no_wa`, `alamat`, `tanggal_daftar`) VALUES
-(1, 'Dyah', '081234567890', 'Jl. Merpati No.10', NULL),
-(2, 'Kinan', '081298765432', 'Jl. Kenanga No.8', NULL),
-(3, 'Fajar', '081355555555', 'Jl. Mawar No.12', NULL),
-(4, 'Dwi', '081222333444', 'Jl. Anggrek No.3', NULL),
-(5, 'Anti', '081777888999', 'Jl. Melati No.5', NULL);
+(5, 4, 2, 2, 14000, '2025-11-05'),
+(6, 7, 2, 1, 7000, '2025-12-16'),
+(7, 8, 3, 1, 9000, '2025-12-16'),
+(8, 9, 2, 1, 7000, '2025-12-22'),
+(9, 9, 1, 1, 10000, '2025-12-22'),
+(10, 9, 3, 1, 9000, '2025-12-22'),
+(11, 10, 6, 1, 10000, '2025-12-23');
 
 -- --------------------------------------------------------
 
@@ -106,17 +87,18 @@ CREATE TABLE `produk` (
   `id_produk` int NOT NULL,
   `nama_produk` varchar(50) DEFAULT NULL,
   `harga` int DEFAULT NULL,
-  `status_aktif` tinyint(1) DEFAULT '1'
+  `status_aktif` tinyint(1) DEFAULT '1',
+  `deskripsi` varchar(100) DEFAULT NULL,
+  `gambar` varchar(255) DEFAULT 'bubur-ayam1.jpg'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Dumping data for table `produk`
 --
 
-INSERT INTO `produk` (`id_produk`, `nama_produk`, `harga`, `status_aktif`) VALUES
-(1, 'Bubur Jumbo', 10000, 1),
-(2, 'Bubur Putihan', 7000, 1),
-(3, 'Bubur Biasa', 9000, 1);
+INSERT INTO `produk` (`id_produk`, `nama_produk`, `harga`, `status_aktif`, `deskripsi`, `gambar`) VALUES
+(6, 'Bubur Biasa', 10000, 1, NULL, 'img_69496ebb31808.jpg'),
+(7, 'Bubur Ayam Spesial', 15000, 1, NULL, 'img_694971e6f20dd.jpg');
 
 -- --------------------------------------------------------
 
@@ -126,24 +108,37 @@ INSERT INTO `produk` (`id_produk`, `nama_produk`, `harga`, `status_aktif`) VALUE
 
 CREATE TABLE `transaksi` (
   `id_transaksi` int NOT NULL,
+  `id_users` int DEFAULT NULL,
+  `order_id` varchar(50) NOT NULL,
+  `id_user` int DEFAULT NULL,
   `tanggal` date DEFAULT NULL,
-  `jenis_transaksi` enum('offline','online') CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  `jenis_transaksi` enum('offline','online') NOT NULL,
   `total_pendapatan` int DEFAULT NULL,
-  `metode_pembayaran` enum('cash','qris') CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  `ongkir` int DEFAULT '0',
+  `nama_penerima` varchar(100) DEFAULT NULL,
+  `alamat_pengiriman` text,
+  `no_hp_penerima` varchar(20) DEFAULT NULL,
+  `snap_token` varchar(255) DEFAULT NULL,
+  `metode_pembayaran` enum('cash','qris','transfer') NOT NULL DEFAULT 'cash',
   `catatan` varchar(100) DEFAULT NULL,
-  `status` enum('Pending','Sukses','Batal') NOT NULL
+  `status` enum('Pending','Lunas','Batal') NOT NULL DEFAULT 'Pending'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Dumping data for table `transaksi`
 --
 
-INSERT INTO `transaksi` (`id_transaksi`, `tanggal`, `jenis_transaksi`, `total_pendapatan`, `metode_pembayaran`, `catatan`, `status`) VALUES
-(1, '2025-11-01', 'offline', 28000, 'cash', 'pagi', 'Pending'),
-(2, '2025-11-02', 'online', 21000, 'qris', 'pesan via WA', 'Pending'),
-(3, '2025-11-03', 'offline', 36000, 'cash', 'ramai jam 7', 'Pending'),
-(4, '2025-11-04', 'online', 18000, 'qris', 'pesan pelanggan tetap', 'Pending'),
-(5, '2025-11-05', 'offline', 27000, 'cash', 'pagi hari', 'Pending');
+INSERT INTO `transaksi` (`id_transaksi`, `id_users`, `order_id`, `id_user`, `tanggal`, `jenis_transaksi`, `total_pendapatan`, `ongkir`, `nama_penerima`, `alamat_pengiriman`, `no_hp_penerima`, `snap_token`, `metode_pembayaran`, `catatan`, `status`) VALUES
+(1, NULL, '1', NULL, '2025-11-01', 'offline', 28000, 0, NULL, NULL, NULL, NULL, 'cash', 'pagi', 'Pending'),
+(2, NULL, '2', NULL, '2025-11-02', 'online', 21000, 0, NULL, NULL, NULL, NULL, 'qris', 'pesan via WA', 'Pending'),
+(3, NULL, '', NULL, '2025-11-03', 'offline', 36000, 0, NULL, NULL, NULL, NULL, 'cash', 'ramai jam 7', 'Pending'),
+(4, NULL, '', NULL, '2025-11-04', 'online', 18000, 0, NULL, NULL, NULL, NULL, 'qris', 'pesan pelanggan tetap', 'Pending'),
+(5, NULL, '', NULL, '2025-11-05', 'offline', 27000, 0, NULL, NULL, NULL, NULL, 'cash', 'pagi hari', 'Pending'),
+(6, NULL, 'TEST-123', 2, '2025-12-16', 'online', 10000, 0, NULL, NULL, NULL, NULL, 'qris', NULL, 'Lunas'),
+(7, NULL, 'ORD-1765826885-2', 2, '2025-12-16', 'online', 7000, 0, NULL, NULL, NULL, '16fac7aa-7719-4d54-985d-4cb9ddfd1e96', 'qris', 'Pemesanan Web', 'Pending'),
+(8, NULL, 'ORD-1765871402-1', 1, '2025-12-16', 'online', 9000, 0, NULL, NULL, NULL, '119203a8-9ec4-4c34-8056-8333ad0764d3', 'qris', 'Pemesanan Web', 'Lunas'),
+(9, NULL, 'ORD-1766405987-2', 2, '2025-12-22', 'online', 26000, 0, NULL, NULL, NULL, 'e529ae23-b77d-4fbc-b006-a28762a6e97b', 'qris', 'Pemesanan Web', 'Lunas'),
+(10, NULL, 'OFF-1766458916', NULL, '2025-12-23', 'offline', 10000, 0, 'Warisi/Meja 1', NULL, NULL, NULL, 'cash', 'Pembelian di Kasir', 'Lunas');
 
 -- --------------------------------------------------------
 
@@ -169,7 +164,8 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id_users`, `nama_lengkap`, `username`, `password`, `email`, `no_hp`, `alamat`, `role`, `created_at`, `updated_at`) VALUES
-(1, 'admin', 'admin', '$2y$10$iu.UiqzI1pFtsRXkK.Xhu.1WsU2Cm6FXiGYTdigXJZQOQSkkBc/kC', NULL, NULL, NULL, 'admin', '2025-12-14 17:55:06', '2025-12-14 18:37:41');
+(1, 'admin', 'admin', '$2y$10$iu.UiqzI1pFtsRXkK.Xhu.1WsU2Cm6FXiGYTdigXJZQOQSkkBc/kC', NULL, NULL, NULL, 'admin', '2025-12-14 17:55:06', '2025-12-14 18:37:41'),
+(2, 'Jihar', 'jhr-07', '$2y$10$AvTIwwI1oCOxMwSiZU8Y7uQrga1.NBvwCJ7en8n9rg8ovwkxZxx/6', 'naiuljihar@gmail.com', '085162907128', 'telang indah gang 6', 'user', '2025-12-15 14:18:32', '2025-12-22 12:18:26');
 
 --
 -- Indexes for dumped tables
@@ -182,12 +178,6 @@ ALTER TABLE `detail_transaksi`
   ADD PRIMARY KEY (`id_detail`),
   ADD KEY `id_transaksi` (`id_transaksi`),
   ADD KEY `id_produk` (`id_produk`);
-
---
--- Indexes for table `pelanggan`
---
-ALTER TABLE `pelanggan`
-  ADD PRIMARY KEY (`id_pelanggan`);
 
 --
 -- Indexes for table `pendapatan_harian`
@@ -205,7 +195,9 @@ ALTER TABLE `produk`
 -- Indexes for table `transaksi`
 --
 ALTER TABLE `transaksi`
-  ADD PRIMARY KEY (`id_transaksi`);
+  ADD PRIMARY KEY (`id_transaksi`),
+  ADD KEY `fk_transaksi_users` (`id_user`),
+  ADD KEY `idx_user` (`id_users`);
 
 --
 -- Indexes for table `users`
@@ -222,31 +214,25 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `detail_transaksi`
 --
 ALTER TABLE `detail_transaksi`
-  MODIFY `id_detail` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
-
---
--- AUTO_INCREMENT for table `pelanggan`
---
-ALTER TABLE `pelanggan`
-  MODIFY `id_pelanggan` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id_detail` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT for table `produk`
 --
 ALTER TABLE `produk`
-  MODIFY `id_produk` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id_produk` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `transaksi`
 --
 ALTER TABLE `transaksi`
-  MODIFY `id_transaksi` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id_transaksi` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id_users` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id_users` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- Constraints for dumped tables
@@ -258,6 +244,12 @@ ALTER TABLE `users`
 ALTER TABLE `detail_transaksi`
   ADD CONSTRAINT `detail_transaksi_ibfk_1` FOREIGN KEY (`id_transaksi`) REFERENCES `transaksi` (`id_transaksi`),
   ADD CONSTRAINT `detail_transaksi_ibfk_2` FOREIGN KEY (`id_produk`) REFERENCES `produk` (`id_produk`);
+
+--
+-- Constraints for table `transaksi`
+--
+ALTER TABLE `transaksi`
+  ADD CONSTRAINT `fk_transaksi_users` FOREIGN KEY (`id_user`) REFERENCES `users` (`id_users`) ON DELETE SET NULL;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

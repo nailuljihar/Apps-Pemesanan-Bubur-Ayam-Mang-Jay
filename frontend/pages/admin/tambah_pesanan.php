@@ -43,7 +43,7 @@ if (isset($_POST['simpan_pesanan'])) {
         $sql_trx = "INSERT INTO transaksi 
                     (id_users, order_id, tanggal, jenis_transaksi, total_pendapatan, ongkir, nama_penerima, status, metode_pembayaran, catatan) 
                     VALUES 
-                    (NULL, '$order_id', NOW(), 'offline', '$total_transaksi', 0, '$nama_pelanggan', 'Sukses', 'cash', 'Pembelian di Kasir')";
+                    (NULL, '$order_id', NOW(), 'offline', '$total_transaksi', 0, '$nama_pelanggan', 'Lunas', 'cash', 'Pembelian di Kasir')";
         
         if ($koneksi->query($sql_trx)) {
             $id_trx_baru = $koneksi->insert_id;

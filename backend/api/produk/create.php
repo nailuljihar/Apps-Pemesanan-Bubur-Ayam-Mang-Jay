@@ -1,71 +1,75 @@
 <?php
-// 1. Sertakan file koneksi database
-include '../../config/koneksi.php';
+// Header agar bisa diakses dari frontend (CORS & JSON)
+header("Access-Control-Allow-Origin: *");
+header("Content-Type: application/json; charset=UTF-8");
+header("Access-Control-Allow-Methods: POST");
 
-// 2. Set header
-header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: *'); 
-header('Access-Control-Allow-Methods: POST');
+require_once '../../config/koneksi.php';
 
-// 3. Pastikan request menggunakan metode POST
+// Cek apakah request method benar POST
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    http_response_code(405); // Method Not Allowed
-    echo json_encode(['status' => 'error', 'message' => 'Hanya metode POST yang diizinkan.']);
+    http_response_code(405);
+    echo json_encode(["status" => "error", "message" => "Metode tidak diizinkan"]);
     exit;
 }
 
-// 4. Ambil data dari body request (diasumsikan JSON)
-$data = json_decode(file_get_contents("php://input"), true);
+// Ambil data dari form (FormData di frontend mengirim $_POST dan $_FILES)
+$nama_produk = $_POST['nama_produk'] ?? '';
+$harga = $_POST['harga'] ?? '';
+$status_aktif = 1; // Default aktif
 
-// 5. Validasi data yang dibutuhkan
-if (!isset($data['nama_produk']) || !isset($data['harga'])) {
-    http_response_code(400); // Bad Request
-    echo json_encode(['status' => 'error', 'message' => 'Nama produk dan Harga harus diisi.']);
-    $koneksi->close();
+// Validasi Input Sederhana
+if (empty($nama_produk) || empty($harga)) {
+    http_response_code(400);
+    echo json_encode(["status" => "error", "message" => "Nama dan Harga wajib diisi!"]);
     exit;
 }
 
-$nama_produk = $data['nama_produk'];
-$harga = (int)$data['harga'];
-// status_aktif otomatis 1 (sesuai definisi tabel)
+// LOGIKA UPLOAD GAMBAR
+$nama_gambar_baru = 'bubur-ayam1.jpg'; // Default jika tidak ada upload
 
-// 6. Query SQL dengan Prepared Statement untuk mencegah SQL Injection
-$gambar = $data['gambar'] ?? 'bubur-ayam1.jpg'; // Default gambar
-$sql = "INSERT INTO produk (nama_produk, harga, gambar) VALUES (?, ?, ?)";
+if (isset($_FILES['gambar']) && $_FILES['gambar']['error'] === 0) {
+    $target_dir = "../../../frontend/assets/images/";
+    
+    // Pastikan folder ada, jika tidak buat dulu
+    if (!file_exists($target_dir)) {
+        mkdir($target_dir, 0777, true);
+    }
+
+    $file_extension = strtolower(pathinfo($_FILES["gambar"]["name"], PATHINFO_EXTENSION));
+    $allowed_ext = ['jpg', 'jpeg', 'png', 'webp'];
+
+    if (in_array($file_extension, $allowed_ext)) {
+        // Generate nama file unik biar gak bentrok (cth: img_6578a9b12.jpg)
+        $nama_gambar_baru = "img_" . uniqid() . "." . $file_extension;
+        $target_file = $target_dir . $nama_gambar_baru;
+
+        if (!move_uploaded_file($_FILES["gambar"]["tmp_name"], $target_file)) {
+            echo json_encode(["status" => "error", "message" => "Gagal upload gambar ke folder assets"]);
+            exit;
+        }
+    } else {
+        echo json_encode(["status" => "error", "message" => "Format gambar harus JPG, JPEG, PNG, atau WEBP"]);
+        exit;
+    }
+}
+
+// INSERT KE DATABASE
+// Pastikan kolom sesuai dengan tabel produk Anda: nama_produk, harga, status_aktif, gambar
+$sql = "INSERT INTO produk (nama_produk, harga, status_aktif, gambar) VALUES (?, ?, ?, ?)";
 $stmt = $koneksi->prepare($sql);
-$stmt->bind_param("sis", $nama_produk, $harga, $gambar);
 
-// Cek jika prepared statement gagal
-if ($stmt === false) {
-    http_response_code(500);
-    echo json_encode(['status' => 'error', 'message' => 'Gagal mempersiapkan query: ' . $koneksi->error]);
-    $koneksi->close();
-    exit;
-}
-
-// Bind parameter: "si" berarti string (nama_produk), integer (harga)
-$stmt->bind_param("si", $nama_produk, $harga);
-
-// 7. Eksekusi query
-if ($stmt->execute()) {
-    http_response_code(201); // Created
-    $response = [
-        'status' => 'success',
-        'message' => 'Produk baru berhasil ditambahkan.',
-        'id_produk' => $koneksi->insert_id // Mengambil ID produk yang baru dibuat
-    ];
+if ($stmt) {
+    $stmt->bind_param("siis", $nama_produk, $harga, $status_aktif, $nama_gambar_baru);
+    
+    if ($stmt->execute()) {
+        echo json_encode(["status" => "success", "message" => "Produk berhasil ditambahkan!"]);
+    } else {
+        http_response_code(500); // Internal Server Error
+        echo json_encode(["status" => "error", "message" => "Gagal simpan database: " . $stmt->error]);
+    }
 } else {
-    http_response_code(500); // Internal Server Error
-    $response = [
-        'status' => 'error',
-        'message' => 'Gagal menambahkan produk: ' . $stmt->error
-    ];
+    http_response_code(500);
+    echo json_encode(["status" => "error", "message" => "Query Error: " . $koneksi->error]);
 }
-
-// 8. Tampilkan response JSON
-echo json_encode($response, JSON_PRETTY_PRINT);
-
-// 9. Tutup statement dan koneksi
-$stmt->close();
-$koneksi->close();
 ?>

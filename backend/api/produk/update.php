@@ -1,72 +1,55 @@
 <?php
-// 1. Sertakan file koneksi database
-include '../../config/koneksi.php';
+header("Access-Control-Allow-Origin: *");
+header("Content-Type: application/json; charset=UTF-8");
+header("Access-Control-Allow-Methods: POST");
 
-// 2. Set header
-header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: *'); 
-header('Access-Control-Allow-Methods: POST, PUT'); // Mendukung POST atau PUT
+require_once '../../config/koneksi.php';
 
-// 3. Ambil data dari body request
-// Karena beberapa client mungkin menggunakan POST untuk update, kita ambil dari php://input
-$data = json_decode(file_get_contents("php://input"), true);
+// 1. Ambil Data
+$id_produk = $_POST['id_produk'] ?? null;
+$nama_produk = $_POST['nama_produk'] ?? '';
+$harga = $_POST['harga'] ?? 0;
+$status_aktif = $_POST['status_aktif'] ?? 1;
 
-// 4. Validasi data yang dibutuhkan
-if (!isset($data['id_produk']) || !isset($data['nama_produk']) || !isset($data['harga']) || !isset($data['status_aktif'])) {
-    http_response_code(400); // Bad Request
-    echo json_encode(['status' => 'error', 'message' => 'ID Produk, Nama, Harga, dan Status Aktif harus diisi.']);
-    $koneksi->close();
+if (!$id_produk) {
+    echo json_encode(["status" => "error", "message" => "ID Produk diperlukan"]);
     exit;
 }
 
-$id_produk = (int)$data['id_produk'];
-$nama_produk = $data['nama_produk'];
-$harga = (int)$data['harga'];
-$status_aktif = (int)$data['status_aktif']; // 0 atau 1
+// 2. Cek Apakah Ada Upload Gambar Baru?
+$query_update = "";
+$params = [];
+$types = "";
 
-// 5. Query SQL dengan Prepared Statement
-$gambar = $data['gambar'];
-$sql = "UPDATE produk SET nama_produk = ?, harga = ?, status_aktif = ?, gambar = ? WHERE id_produk = ?";
-$stmt = $koneksi->prepare($sql);
-$stmt->bind_param("siisi", $nama_produk, $harga, $status_aktif, $gambar, $id_produk);
-
-if ($stmt === false) {
-    http_response_code(500);
-    echo json_encode(['status' => 'error', 'message' => 'Gagal mempersiapkan query: ' . $koneksi->error]);
-    $koneksi->close();
-    exit;
-}
-
-// Bind parameter: "siii" berarti string, integer, integer, integer (nama, harga, status, id)
-$stmt->bind_param("siii", $nama_produk, $harga, $status_aktif, $id_produk);
-
-// 6. Eksekusi query
-if ($stmt->execute()) {
-    // Cek apakah ada baris yang benar-benar terpengaruh (diupdate)
-    if ($stmt->affected_rows > 0) {
-        $response = [
-            'status' => 'success',
-            'message' => 'Produk dengan ID ' . $id_produk . ' berhasil diperbarui.'
-        ];
+if (isset($_FILES['gambar']) && $_FILES['gambar']['error'] === 0) {
+    // --- LOGIKA UPLOAD GAMBAR BARU ---
+    $target_dir = "../../../frontend/assets/images/";
+    $ext = strtolower(pathinfo($_FILES["gambar"]["name"], PATHINFO_EXTENSION));
+    $nama_file_baru = "img_" . uniqid() . "." . $ext;
+    
+    if (move_uploaded_file($_FILES["gambar"]["tmp_name"], $target_dir . $nama_file_baru)) {
+        // Query update DENGAN gambar
+        $query_update = "UPDATE produk SET nama_produk=?, harga=?, status_aktif=?, gambar=? WHERE id_produk=?";
+        $params = [$nama_produk, $harga, $status_aktif, $nama_file_baru, $id_produk];
+        $types = "siisi";
     } else {
-        // Baris ditemukan, tapi data mungkin sama, atau ID tidak ditemukan
-        $response = [
-            'status' => 'warning',
-            'message' => 'Data produk tidak berubah atau ID produk tidak ditemukan.'
-        ];
+        echo json_encode(["status" => "error", "message" => "Gagal upload gambar"]);
+        exit;
     }
 } else {
-    http_response_code(500);
-    $response = [
-        'status' => 'error',
-        'message' => 'Gagal memperbarui produk: ' . $stmt->error
-    ];
+    // Query update TANPA ganti gambar
+    $query_update = "UPDATE produk SET nama_produk=?, harga=?, status_aktif=? WHERE id_produk=?";
+    $params = [$nama_produk, $harga, $status_aktif, $id_produk];
+    $types = "siii";
 }
 
-// 7. Tampilkan response JSON
-echo json_encode($response, JSON_PRETTY_PRINT);
+// 3. Eksekusi Query
+$stmt = $koneksi->prepare($query_update);
+$stmt->bind_param($types, ...$params);
 
-// 8. Tutup statement dan koneksi
-$stmt->close();
-$koneksi->close();
+if ($stmt->execute()) {
+    echo json_encode(["status" => "success", "message" => "Produk berhasil diperbarui"]);
+} else {
+    echo json_encode(["status" => "error", "message" => "Database error: " . $stmt->error]);
+}
 ?>

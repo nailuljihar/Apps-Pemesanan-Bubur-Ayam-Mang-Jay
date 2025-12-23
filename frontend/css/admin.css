@@ -200,6 +200,9 @@ body {
     color: var(--warna-teks);
     border-bottom: 2px solid var(--warna-latar-halaman);
     padding-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 table {
@@ -223,98 +226,103 @@ table tr:hover {
     background-color: #fafafa;
 }
 
+/* Tombol Aksi */
+.tombol-biru {
+    background-color: #3498db; 
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.3s;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+.tombol-biru:hover { background-color: #2980b9; }
+
+.btn-edit, .btn-delete {
+    display: inline-block;
+    padding: 6px 10px;
+    border-radius: 4px;
+    text-decoration: none;
+    margin-right: 5px;
+    transition: 0.2s;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-edit { background-color: #f39c12; color: white; }
+.btn-edit:hover { background-color: #d35400; }
+
+.btn-delete { background-color: #e74c3c; color: white; }
+.btn-delete:hover { background-color: #c0392b; }
+
 /* Responsive Table */
 @media (max-width: 768px) {
     .admin-sidebar {
-        width: 70px; /* Sidebar mengecil di HP */
+        width: 70px;
     }
     .sidebar-header h2, .sidebar-menu span, .btn-logout span {
-        display: none; /* Sembunyikan teks di HP */
+        display: none;
     }
     .admin-content {
         margin-left: 70px;
     }
 }
 
-/* --- Tambahan untuk Layout User --- */
-.user-menu-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: 20px;
-    padding: 20px;
-}
+/* ========================================================= */
+/* --- 7. STYLING ALERT & NOTIFIKASI (TOAST) --- */
+/* ========================================================= */
 
-.menu-item-card {
-    background: #fff;
-    border-radius: 10px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-    overflow: hidden;
-    transition: transform 0.2s;
+#alert-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
     display: flex;
     flex-direction: column;
+    gap: 10px;
 }
 
-.menu-item-card:hover {
-    transform: translateY(-5px);
-}
-
-.menu-item-card img {
-    width: 100%;
-    height: 150px;
-    object-fit: cover;
-}
-
-.menu-details {
-    padding: 15px;
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column;
-}
-
-.menu-price {
-    color: #e67e22; /* Warna khas makanan */
-    font-weight: bold;
-    font-size: 1.1em;
-    margin: 10px 0;
-}
-
-/* --- Styling Alert Validasi --- */
 .alert {
-    padding: 15px;
-    margin-bottom: 20px;
-    border: 1px solid transparent;
-    border-radius: 4px;
-    font-size: 0.9em;
+    padding: 15px 20px;
+    min-width: 300px;
+    border-radius: 8px;
+    color: #fff;
+    font-weight: 500;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    animation: slideInRight 0.5s ease-out forwards;
+    opacity: 0.95;
+    border-left: 5px solid rgba(0,0,0,0.2);
 }
 
-.alert-success {
-    color: #155724;
-    background-color: #d4edda;
-    border-color: #c3e6cb;
+@keyframes slideInRight {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
 }
 
-.alert-danger {
-    color: #721c24;
-    background-color: #f8d7da;
-    border-color: #f5c6cb;
+@keyframes fadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; transform: translateY(-10px); }
 }
 
-.alert-info {
-    color: #0c5460;
-    background-color: #d1ecf1;
-    border-color: #bee5eb;
-}
+.alert-success { background-color: #27ae60; }
+.alert-danger { background-color: #c0392b; }
+.alert-info { background-color: #2980b9; }
+.alert-warning { background-color: #f39c12; }
 
-/* Tombol Aksi di Keranjang */
-.btn-qty {
-    background: #eee;
-    border: none;
-    padding: 5px 10px;
+.alert-close {
+    margin-left: 15px;
     cursor: pointer;
+    font-weight: bold;
+    font-size: 1.2em;
+    opacity: 0.7;
+    transition: 0.3s;
 }
-.btn-delete {
-    color: red;
-    cursor: pointer;
-    background: none;
-    border: none;
-}
+.alert-close:hover { opacity: 1; }
