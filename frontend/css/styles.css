@@ -669,3 +669,200 @@ table tbody tr:hover {
     grid-template-columns: 1fr;
   }
 }
+
+/* ========================================= */
+/* --- LAYOUT USER GLOBAL (Sidebar & Main) --- */
+/* ========================================= */
+
+.sidebar-menu li a {
+    color: #dfe6e9 !important;
+}
+
+/* Efek Hover & Active Sidebar */
+.sidebar-menu li a:hover, 
+.sidebar-menu li a.active {
+    background-color: #d35400 !important; /* Warna Oranye */
+    color: white !important;
+    border-left-color: white !important;
+}
+
+.sidebar-footer {
+    border-top: 1px solid #444;
+}
+
+/* Header Konten */
+.content-header {
+    border-bottom: 2px solid #eee;
+    margin-bottom: 20px;
+}
+.content-header h1 {
+    color: #2d3436;
+}
+
+/* Badge Notifikasi Merah */
+.badge-cart {
+    background: #e74c3c;
+    color: white;
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-size: 0.75em;
+    margin-left: 5px;
+    vertical-align: middle;
+}
+
+/* --- Styling Tambahan untuk Riwayat/Card --- */
+.card-riwayat {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    margin-bottom: 20px;
+    padding: 20px;
+    border-left: 5px solid #d35400; /* Aksen Oranye */
+    transition: transform 0.2s;
+}
+.card-riwayat:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+/* Badge Status */
+.status-badge { padding: 5px 12px; border-radius: 20px; font-size: 0.85em; font-weight: bold; color: white; display: inline-block; }
+.bg-pending { background: #f39c12; }
+.bg-lunas { background: #3498db; }
+.bg-dikemas { background: #9b59b6; }
+.bg-diantar { background: #e67e22; }
+.bg-selesai { background: #27ae60; }
+.bg-batal { background: #c0392b; }
+
+/* ========================================= */
+/* --- HALAMAN AUTENTIKASI (Login/Register) --- */
+/* ========================================= */
+
+.auth-body {
+    background-color: #f4f6f9; /* Abu muda bersih */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+}
+
+.auth-card {
+    background: white;
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+    border-top: 5px solid #d35400; /* Aksen Oranye User */
+}
+
+.auth-header h2 {
+    color: #2d3436;
+    margin-bottom: 10px;
+    font-size: 1.8rem;
+    font-weight: 700;
+}
+
+.auth-header p {
+    color: #636e72;
+    margin-bottom: 30px;
+    font-size: 0.95rem;
+}
+
+.auth-form .form-group {
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+.auth-form label {
+    display: block;
+    margin-bottom: 8px;
+    color: #2d3436;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.auth-form input, 
+.auth-form textarea {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid #dfe6e9;
+    border-radius: 6px;
+    font-size: 1rem;
+    transition: all 0.3s;
+    box-sizing: border-box;
+    background: #fdfdfd;
+}
+
+.auth-form input:focus,
+.auth-form textarea:focus {
+    border-color: #d35400;
+    background: #fff;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(211, 84, 0, 0.1);
+}
+
+.btn-auth {
+    width: 100%;
+    padding: 14px;
+    background-color: #d35400; /* Oranye */
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s;
+    margin-top: 10px;
+}
+
+.btn-auth:hover {
+    background-color: #e67e22;
+    transform: translateY(-2px);
+}
+
+.btn-auth:active {
+    transform: translateY(0);
+}
+
+.auth-footer {
+    margin-top: 25px;
+    font-size: 0.9rem;
+    color: #636e72;
+    border-top: 1px solid #eee;
+    padding-top: 20px;
+}
+
+.auth-footer a {
+    color: #d35400;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.auth-footer a:hover {
+    text-decoration: underline;
+}
+
+/* Alert Styles khusus Auth */
+.auth-alert {
+    padding: 12px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.auth-alert-danger {
+    background-color: #ffebee;
+    color: #c0392b;
+    border: 1px solid #ffcdd2;
+}
+.auth-alert-success {
+    background-color: #e8f5e9;
+    color: #27ae60;
+    border: 1px solid #c8e6c9;
+}
