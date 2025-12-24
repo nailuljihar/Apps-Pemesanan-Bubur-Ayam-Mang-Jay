@@ -2,31 +2,11 @@
 session_start();
 require_once '../../../backend/config/koneksi.php';
 
+// Cek Login Admin
 if (!isset($_SESSION['role']) || $_SESSION['role'] != 'admin') {
-    header("Location: ../../user/login.php");
+    header("Location: ../../../index.php");
     exit();
 }
-
-// 1. Hitung Pesanan Hari Ini
-$today = date('Y-m-d');
-$query_pesanan = "SELECT COUNT(*) as total FROM transaksi WHERE DATE(tanggal) = '$today'";
-$res_pesanan = $koneksi->query($query_pesanan);
-$jml_pesanan = $res_pesanan->fetch_assoc()['total'];
-
-// 2. Hitung Pendapatan Hari Ini (Cuma yang Lunas)
-$query_omset = "SELECT SUM(total_pendapatan) as omset FROM transaksi WHERE DATE(tanggal) = '$today' AND status = 'Lunas'";
-$res_omset = $koneksi->query($query_omset);
-$omset_today = $res_omset->fetch_assoc()['omset'] ?? 0;
-
-// 3. Hitung Total Menu
-$query_menu = "SELECT COUNT(*) as total FROM produk";
-$res_menu = $koneksi->query($query_menu);
-$total_menu = $res_menu->fetch_assoc()['total'];
-
-// 4. Hitung Pesanan Pending (Perlu Konfirmasi)
-$query_pending = "SELECT COUNT(*) as total FROM transaksi WHERE status = 'Pending'";
-$res_pending = $koneksi->query($query_pending);
-$pending_count = $res_pending->fetch_assoc()['total'];
 ?>
 
 <!DOCTYPE html>
@@ -44,16 +24,14 @@ $pending_count = $res_pending->fetch_assoc()['total'];
         <div class="sidebar-header">
             <h2>ADMIN PANEL</h2>
         </div>
-        
         <ul class="sidebar-menu">
             <li><a href="dashboard.php" class="active"><i class="fa-solid fa-gauge"></i> <span>Dashboard</span></a></li>
             <li><a href="data_pesanan.php"><i class="fa-solid fa-cart-shopping"></i> <span>Pesanan</span></a></li>
             <li><a href="produk.php"><i class="fa-solid fa-utensils"></i> <span>Menu Produk</span></a></li>
             <li><a href="reports.php"><i class="fa-solid fa-chart-line"></i> <span>Laporan</span></a></li>
         </ul>
-
         <div class="sidebar-footer">
-            <a href="../../../index.php" class="btn-logout" onclick="return confirm('Yakin ingin keluar?');">
+            <a href="../../../logout.php" class="btn-logout" onclick="return confirm('Yakin ingin keluar?');">
                 <i class="fa-solid fa-right-from-bracket"></i> <span>Logout</span>
             </a>
         </div>
@@ -61,96 +39,86 @@ $pending_count = $res_pending->fetch_assoc()['total'];
 
     <main class="admin-content">
         <div class="content-header">
-            <h1>Selamat Datang, Admin!</h1>
+            <h1>Dashboard Overview</h1>
             <div class="user-info">
-                <i class="fa-solid fa-user-circle"></i> <?= $_SESSION['nama_lengkap'] ?? 'Administrator' ?>
+                <i class="fa-solid fa-user-shield"></i> Halo, Admin
             </div>
         </div>
 
         <div class="stats-grid">
-            <div class="stat-card">
+            
+            <div class="stat-card" style="border-left-color: #3498db;">
                 <div class="stat-info">
-                    <h3>150</h3>
+                    <h3 id="stat-orders">0</h3>
                     <p>Pesanan Hari Ini</p>
                 </div>
-                <div class="stat-icon">
-                    <i class="fa-solid fa-clipboard-list"></i>
+                <div class="stat-icon" style="color: #3498db;">
+                    <i class="fa-solid fa-cart-plus"></i>
                 </div>
             </div>
 
-            <div class="stat-card">
+            <div class="stat-card" style="border-left-color: #27ae60;">
                 <div class="stat-info">
-                    <h3>Rp 2.5jt</h3>
-                    <p>Pendapatan</p>
+                    <h3 id="stat-income">Rp 0</h3>
+                    <p>Pendapatan Hari Ini</p>
                 </div>
-                <div class="stat-icon">
+                <div class="stat-icon" style="color: #27ae60;">
                     <i class="fa-solid fa-money-bill-wave"></i>
                 </div>
             </div>
 
-            <div class="stat-card">
-                <div class="stat-info">
-                    <h3>12</h3>
-                    <p>Menu Aktif</p>
-                </div>
-                <div class="stat-icon">
-                    <i class="fa-solid fa-burger"></i>
-                </div>
-            </div>
-            
             <div class="stat-card" style="border-left-color: #f39c12;">
                 <div class="stat-info">
-                    <h3>5</h3>
-                    <p>Perlu Konfirmasi</p>
+                    <h3 id="stat-products">0</h3>
+                    <p>Menu Aktif</p>
                 </div>
                 <div class="stat-icon" style="color: #f39c12;">
-                    <i class="fa-solid fa-bell"></i>
+                    <i class="fa-solid fa-bowl-food"></i>
                 </div>
             </div>
+
+            <div class="stat-card" style="border-left-color: #9b59b6;">
+                <div class="stat-info">
+                    <h3 id="stat-users">0</h3>
+                    <p>Total Pelanggan</p>
+                </div>
+                <div class="stat-icon" style="color: #9b59b6;">
+                    <i class="fa-solid fa-users"></i>
+                </div>
+            </div>
+
         </div>
 
-        <div class="stats-grid">
-    <div class="stat-card">
-        <div class="stat-info">
-            <h3><?= $jml_pesanan ?></h3> <p>Pesanan Hari Ini</p>
-        </div>
-        <div class="stat-icon"><i class="fa-solid fa-clipboard-list"></i></div>
-    </div>
-
-    <div class="stat-card">
-        <div class="stat-info">
-            <h3>Rp <?= number_format($omset_today/1000, 1) ?>jt</h3> <p>Pendapatan Hari Ini</p>
-        </div>
-        <div class="stat-icon"><i class="fa-solid fa-money-bill-wave"></i></div>
-    </div>
-    
-    </div>
-
-        <div class="table-container">
-            <div class="table-header">Pesanan Terbaru</div>
-            <table>
-                <thead>
-                    <tr>
-                        <th>ID Pesanan</th>
-                        <th>Pelanggan</th>
-                        <th>Total</th>
-                        <th>Status</th>
-                        <th>Aksi</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>#ORD-001</td>
-                        <td>Budi Santoso</td>
-                        <td>Rp 25.000</td>
-                        <td><span style="color: green; font-weight: bold;">Selesai</span></td>
-                        <td><button style="padding: 5px 10px;">Detail</button></td>
-                    </tr>
-                    </tbody>
-            </table>
+        <div class="dashboard-wrapper">
+            <h3>Aktivitas Terbaru</h3>
+            <p style="color:#777;">Data statistik di atas diperbarui secara otomatis setiap 3 detik.</p>
         </div>
 
     </main>
+
+    <script>
+        function updateStats() {
+            fetch('../../../backend/api/stats/dashboard_stats.php')
+            .then(response => response.json())
+            .then(data => {
+                // Update Angka di Halaman
+                document.getElementById('stat-orders').innerText = data.orders_today;
+                document.getElementById('stat-products').innerText = data.active_products;
+                document.getElementById('stat-users').innerText = data.total_users;
+                
+                // Format Rupiah untuk Pendapatan
+                let income = parseInt(data.income_today).toLocaleString('id-ID');
+                document.getElementById('stat-income').innerText = 'Rp ' + income;
+            })
+            .catch(error => console.error('Gagal mengambil data stats:', error));
+        }
+
+        // Panggil fungsi pertama kali saat load
+        updateStats();
+
+        // Panggil ulang setiap 3000ms (3 detik)
+        setInterval(updateStats, 3000);
+    </script>
 
 </body>
 </html>

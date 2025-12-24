@@ -60,41 +60,50 @@ $result = $koneksi->query($sql);
         </div>
 
         <div class="dashboard-wrapper">
-            <form action="" method="GET" style="background:#fff; padding:15px; border-radius:8px; display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end; margin-bottom:20px;">
-                
-                <div>
-                    <label>Periode</label>
-                    <select name="periode" class="input-field" onchange="this.form.submit()">
-                        <option value="harian" <?= $filter_periode=='harian'?'selected':'' ?>>Harian</option>
-                        <option value="mingguan" <?= $filter_periode=='mingguan'?'selected':'' ?>>Range Tanggal</option>
-                        <option value="bulanan" <?= $filter_periode=='bulanan'?'selected':'' ?>>Bulanan</option>
-                        <option value="tahunan" <?= $filter_periode=='tahunan'?'selected':'' ?>>Tahunan</option>
-                    </select>
-                </div>
+    
+    <div style="background:#fff; padding:20px; border-radius:8px; margin-bottom:20px; box-shadow:0 2px 5px rgba(0,0,0,0.05);">
+        <form id="formFilter" action="" method="GET" style="display:flex; gap:15px; flex-wrap:wrap; align-items:flex-end;">
+            
+            <div>
+                <label style="display:block; margin-bottom:5px; font-weight:bold;">Periode</label>
+                <select name="periode" class="input-field" id="selectPeriode" onchange="cekPeriode()" style="padding:8px; border-radius:4px; border:1px solid #ddd;">
+                    <option value="harian" <?= $filter_periode=='harian'?'selected':'' ?>>Harian</option>
+                    <option value="mingguan" <?= $filter_periode=='mingguan'?'selected':'' ?>>Mingguan (Range)</option>
+                    <option value="bulanan" <?= $filter_periode=='bulanan'?'selected':'' ?>>Bulanan</option>
+                    <option value="tahunan" <?= $filter_periode=='tahunan'?'selected':'' ?>>Tahunan</option>
+                </select>
+            </div>
 
-                <div>
-                    <label>Tipe Pesanan</label>
-                    <select name="tipe" class="input-field">
-                        <option value="semua" <?= $filter_tipe=='semua'?'selected':'' ?>>Semua</option>
-                        <option value="online" <?= $filter_tipe=='online'?'selected':'' ?>>Online (User)</option>
-                        <option value="offline" <?= $filter_tipe=='offline'?'selected':'' ?>>Offline (Kasir)</option>
-                    </select>
-                </div>
+            <div>
+                <label style="display:block; margin-bottom:5px; font-weight:bold;">Tipe Pesanan</label>
+                <select name="tipe" class="input-field" style="padding:8px; border-radius:4px; border:1px solid #ddd;">
+                    <option value="semua" <?= $filter_tipe=='semua'?'selected':'' ?>>Semua Tipe</option>
+                    <option value="online" <?= $filter_tipe=='online'?'selected':'' ?>>Online</option>
+                    <option value="offline" <?= $filter_tipe=='offline'?'selected':'' ?>>Offline</option>
+                </select>
+            </div>
 
-                <div>
-                    <label>Tanggal Awal</label>
-                    <input type="date" name="tgl_awal" value="<?= $tgl_awal ?>" class="input-field">
-                </div>
+            <div>
+                <label style="display:block; margin-bottom:5px; font-weight:bold;">Tanggal Awal</label>
+                <input type="date" name="tgl_awal" value="<?= $tgl_awal ?>" class="input-field" style="padding:8px; border-radius:4px; border:1px solid #ddd;">
+            </div>
 
-                <?php if($filter_periode == 'mingguan'): ?>
-                <div>
-                    <label>Tanggal Akhir</label>
-                    <input type="date" name="tgl_akhir" value="<?= $tgl_akhir ?>" class="input-field">
-                </div>
-                <?php endif; ?>
+            <div id="boxAkhir" style="display: <?= $filter_periode == 'mingguan' ? 'block' : 'none' ?>;">
+                <label style="display:block; margin-bottom:5px; font-weight:bold;">Tanggal Akhir</label>
+                <input type="date" name="tgl_akhir" value="<?= $tgl_akhir ?>" class="input-field" style="padding:8px; border-radius:4px; border:1px solid #ddd;">
+            </div>
 
-                <button type="submit" class="tombol-biru">Tampilkan</button>
-            </form>
+            <div style="display:flex; gap:10px;">
+                <button type="submit" class="tombol-biru" style="padding:8px 20px;">
+                    <i class="fa fa-filter"></i> Tampilkan
+                </button>
+
+                <button type="button" onclick="downloadPDF()" class="tombol-biru" style="background:#e74c3c; padding:8px 20px;">
+                    <i class="fa fa-file-pdf"></i> Download PDF
+                </button>
+            </div>
+        </form>
+    </div>
 
             <div class="table-container">
                 <table>
@@ -149,5 +158,31 @@ $result = $koneksi->query($sql);
             </div>
         </div>
     </main>
+
+    <script>
+        function cekPeriode() {
+            var val = document.getElementById('selectPeriode').value;
+            var box = document.getElementById('boxAkhir');
+            if(val === 'mingguan') {
+                box.style.display = 'block';
+            } else {
+                box.style.display = 'none';
+            }
+        }
+
+        function downloadPDF() {
+            // Ambil semua nilai dari form
+            var periode = document.querySelector('select[name="periode"]').value;
+            var tipe = document.querySelector('select[name="tipe"]').value;
+            var tgl_awal = document.querySelector('input[name="tgl_awal"]').value;
+            var tgl_akhir = document.querySelector('input[name="tgl_akhir"]').value;
+
+            // Redirect ke file PDF generator dengan membawa parameter
+            var url = `../../../backend/api/laporan/download_pdf.php?periode=${periode}&tipe=${tipe}&tgl_awal=${tgl_awal}&tgl_akhir=${tgl_akhir}`;
+            
+            // Buka di tab baru
+            window.open(url, '_blank');
+        }
+    </script>
 </body>
 </html>

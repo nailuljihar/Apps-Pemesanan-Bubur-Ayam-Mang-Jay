@@ -5,8 +5,10 @@ require_once 'backend/config/koneksi.php';
 // Jika sudah login, lempar ke dashboard sesuai role
 if (isset($_SESSION['role'])) {
     if ($_SESSION['role'] == 'admin') {
+        // Pastikan file ini ADA
         header("Location: frontend/pages/admin/dashboard.php");
     } else {
+        // Pastikan file ini ADA
         header("Location: frontend/pages/user/index.php");
     }
     exit;
@@ -29,6 +31,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $_SESSION['id_users'] = $row['id_users'];
             $_SESSION['username'] = $row['username'];
             $_SESSION['role'] = $row['role'];
+            $_SESSION['nama_lengkap'] = $row['nama_lengkap'];
+            $_SESSION['no_hp'] = $row['no_hp']; // Penting untuk checkout
+            $_SESSION['alamat'] = $row['alamat']; // Penting untuk checkout
 
             // Redirect
             if ($row['role'] == 'admin') {

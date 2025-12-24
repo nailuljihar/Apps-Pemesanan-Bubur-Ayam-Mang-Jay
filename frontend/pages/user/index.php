@@ -43,7 +43,7 @@ $result = $koneksi->query($query);
         </ul>
 
         <div class="sidebar-footer">
-            <a href="../../../index.php" class="btn-logout" onclick="return confirm('Keluar dari aplikasi?');">
+            <a href="../../../logout.php" class="btn-logout" onclick="return confirm('Yakin ingin keluar?');">
                 <i class="fa-solid fa-right-from-bracket"></i> <span>Logout</span>
             </a>
         </div>
