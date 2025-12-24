@@ -51,7 +51,7 @@ $jumlah_keranjang = isset($_SESSION['keranjang']) ? count($_SESSION['keranjang']
         </ul>
 
         <div class="sidebar-footer">
-            <a href="../../../index.php" class="btn-logout" onclick="return confirm('Keluar?');" style="background:#c0392b; color:white; border:none;">
+            <a href="../../../index.php" class="btn-logout" onclick="return confirm('Keluar?');">
                 <i class="fa-solid fa-right-from-bracket"></i> <span>Logout</span>
             </a>
         </div>

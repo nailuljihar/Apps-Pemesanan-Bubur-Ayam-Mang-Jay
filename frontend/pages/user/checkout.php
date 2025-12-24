@@ -81,7 +81,7 @@ $u = $koneksi->query($sql_user)->fetch_assoc();
                     <ul style="list-style:none; padding:0; margin-bottom:20px;">
                         <?php foreach($_SESSION['keranjang'] as $itm): ?>
                         <li style="border-bottom:1px dashed #ccc; padding:5px 0; display:flex; justify-content:space-between;">
-                            <span><?= $itm['nama'] ?> (x<?= $itm['jumlah'] ?>)</span>
+                            <span><?= $itm['nama_produk'] ?> (x<?= $itm['jumlah'] ?>)</span>
                             <span>Rp <?= number_format($itm['harga'] * $itm['jumlah'], 0, ',', '.') ?></span>
                         </li>
                         <?php endforeach; ?>
