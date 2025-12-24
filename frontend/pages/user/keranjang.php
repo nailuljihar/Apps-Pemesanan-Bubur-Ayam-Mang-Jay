@@ -23,7 +23,7 @@ if(isset($_GET['hapus'])) {
 <head>
     <meta charset="UTF-8">
     <title>Keranjang Belanja</title>
-    <link rel="stylesheet" href="../../css/admin.css">
+    <link rel="stylesheet" href="../../css/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
@@ -64,7 +64,7 @@ if(isset($_GET['hapus'])) {
                             $total_belanja += $subtotal;
                         ?>
                         <tr>
-                            <td><?= $item['nama'] ?></td>
+                            <td><?= $item['nama_produk'] ?></td>
                             <td>Rp <?= number_format($item['harga'],0,',','.') ?></td>
                             <td>
                                 <form action="" method="POST" style="display:flex; gap:5px;">

@@ -48,30 +48,6 @@ if (isset($_POST['login'])) {
     <title>Login - Bubur Ayam Bang Jay</title>
     <link rel="stylesheet" href="frontend/css/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-    <style>
-        .password-container {
-            position: relative;
-            width: 100%;
-        }
-        .password-container input {
-            width: 100%;
-            padding-right: 40px; /* Kasih jarak di kanan biar teks gak nabrak ikon */
-        }
-        .toggle-password {
-            position: absolute;
-            right: 15px;
-            top: 50%; /* Posisi tengah vertikal */
-            transform: translateY(-50%); /* Koreksi posisi tengah */
-            cursor: pointer;
-            color: var(--warna-teks-nav); /* Warna abu-abu */
-            font-size: 1.1em;
-            z-index: 10;
-        }
-        .toggle-password:hover {
-            color: var(--warna-primer); /* Berubah warna saat di-hover */
-        }
-    </style>
 </head>
 <body>
     <div class="main-wrapper">
