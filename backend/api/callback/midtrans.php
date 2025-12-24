@@ -1,48 +1,52 @@
 <?php
-// File: backend/api/callback/midtrans.php
-// Pastikan path koneksi ini benar
 require_once '../../config/koneksi.php';
+require_once '../../../vendor/autoload.php';
 
-// 1. Ambil data JSON mentah dari Midtrans
-$json_result = file_get_contents('php://input');
-$result = json_decode($json_result, true);
+// Konfigurasi Midtrans
+\Midtrans\Config::$serverKey = 'SB-Mid-server-9nWvHSWmVVj4U90WuCfqJ-67'; // Ganti dengan Server Key Anda
+\Midtrans\Config::$isProduction = false;
+\Midtrans\Config::$isSanitized = true;
+\Midtrans\Config::$is3ds = true;
 
-// 2. Cek validitas data
-if (!$result) {
-    die("Akses ditolak: Data tidak valid.");
-}
+try {
+    $notif = new \Midtrans\Notification();
 
-// 3. Ambil variabel penting
-$order_id = $result['order_id'];
-$transaction_status = $result['transaction_status'];
-$fraud_status = $result['fraud_status'];
+    $transaction = $notif->transaction_status;
+    $type = $notif->payment_type;
+    $order_id = $notif->order_id;
+    $fraud = $notif->fraud_status;
 
-// 4. Logika Penentuan Status
-$status_baru = "";
+    // Mapping Status Midtrans ke Database Kita
+    $status_db = 'Pending';
 
-if ($transaction_status == 'capture') {
-    if ($fraud_status == 'challenge') {
-        $status_baru = 'Pending';
-    } else {
-        $status_baru = 'Lunas';
+    if ($transaction == 'capture') {
+        if ($type == 'credit_card') {
+            if ($fraud == 'challenge') {
+                $status_db = 'Pending';
+            } else {
+                $status_db = 'Lunas'; // Lunas = Siap Dikemas
+            }
+        }
+    } else if ($transaction == 'settlement') {
+        $status_db = 'Lunas';
+    } else if ($transaction == 'pending') {
+        $status_db = 'Pending';
+    } else if ($transaction == 'deny' || $transaction == 'expire' || $transaction == 'cancel') {
+        $status_db = 'Batal';
     }
-} else if ($transaction_status == 'settlement') {
-    $status_baru = 'Lunas';
-} else if ($transaction_status == 'pending') {
-    $status_baru = 'Pending';
-} else if ($transaction_status == 'deny' || $transaction_status == 'expire' || $transaction_status == 'cancel') {
-    $status_baru = 'Batal';
-}
 
-// 5. Update Database (User & Admin otomatis melihat ini)
-if ($status_baru != "") {
+    // Update Status di Database
+    // Jika status Lunas, kita set juga defaultnya jadi 'Dikemas' agar admin tau
+    $status_pesanan = ($status_db == 'Lunas') ? 'Dikemas' : $status_db;
+
     $stmt = $koneksi->prepare("UPDATE transaksi SET status = ? WHERE order_id = ?");
-    $stmt->bind_param("ss", $status_baru, $order_id);
-    
-    if ($stmt->execute()) {
-        echo "Sukses update status $order_id jadi $status_baru";
-    } else {
-        echo "Gagal update: " . $koneksi->error;
-    }
+    $stmt->bind_param("ss", $status_pesanan, $order_id);
+    $stmt->execute();
+
+    echo "Status transaksi diperbarui: $status_pesanan";
+
+} catch (Exception $e) {
+    http_response_code(500);
+    echo "Error: " . $e->getMessage();
 }
 ?>

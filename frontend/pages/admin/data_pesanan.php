@@ -8,24 +8,35 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] != 'admin') {
     exit();
 }
 
-// QUERY PERBAIKAN:
-// 1. Gunakan LEFT JOIN agar pesanan Offline (yg tidak punya user ID) tetap muncul.
-// 2. Ambil 't.nama_penerima' (untuk offline) DAN 'u.nama_lengkap' (untuk online).
-// 3. Gunakan alias 't' untuk transaksi dan 'u' untuk users biar rapi.
+// --- LOGIKA HAPUS PESANAN ---
+if (isset($_GET['hapus'])) {
+    $id_hapus = $_GET['hapus'];
+    // Hapus detail dulu (Foreign Key)
+    $koneksi->query("DELETE FROM detail_transaksi WHERE id_transaksi = '$id_hapus'");
+    // Hapus transaksi utama
+    if($koneksi->query("DELETE FROM transaksi WHERE id_transaksi = '$id_hapus'")){
+        echo "<script>alert('Pesanan berhasil dihapus!'); window.location='data_pesanan.php';</script>";
+    }
+}
 
+// --- LOGIKA UPDATE STATUS PESANAN ---
+if (isset($_POST['update_status'])) {
+    $id_trx = $_POST['id_transaksi'];
+    $status_baru = $_POST['status_baru'];
+    
+    $stmt = $koneksi->prepare("UPDATE transaksi SET status = ? WHERE id_transaksi = ?");
+    $stmt->bind_param("si", $status_baru, $id_trx);
+    $stmt->execute();
+    echo "<script>alert('Status berhasil diubah menjadi $status_baru'); window.location='data_pesanan.php';</script>";
+}
+
+// Query Data Pesanan
 $query_pesanan = "SELECT 
-                    t.id_transaksi,
-                    t.order_id,
-                    t.tanggal,
-                    t.total_pendapatan,
-                    t.status,
-                    t.jenis_transaksi,
-                    t.nama_penerima,  -- Nama dari input manual (Offline/Guest)
-                    u.nama_lengkap    -- Nama dari akun user (Member Online)
+                    t.id_transaksi, t.order_id, t.tanggal, t.total_pendapatan, 
+                    t.status, t.jenis_transaksi, t.nama_penerima, u.nama_lengkap 
                   FROM transaksi t
                   LEFT JOIN users u ON t.id_users = u.id_users 
                   ORDER BY t.tanggal DESC";
-
 $result_pesanan = $koneksi->query($query_pesanan);
 ?>
 
@@ -33,17 +44,24 @@ $result_pesanan = $koneksi->query($query_pesanan);
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Data Pesanan - Admin Bang Jay</title>
+    <title>Kelola Pesanan - Admin</title>
     <link rel="stylesheet" href="../../css/admin.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Styling Badge Status */
+        .badge { padding: 5px 10px; border-radius: 15px; color: white; font-weight: bold; font-size: 0.8em; }
+        .bg-pending { background-color: #f39c12; } /* Kuning */
+        .bg-lunas { background-color: #3498db; }   /* Biru */
+        .bg-dikemas { background-color: #9b59b6; } /* Ungu */
+        .bg-dikirim { background-color: #e67e22; } /* Oranye */
+        .bg-selesai { background-color: #27ae60; } /* Hijau */
+        .bg-batal { background-color: #c0392b; }   /* Merah */
+    </style>
 </head>
 <body>
 
     <nav class="admin-sidebar">
-        <div class="sidebar-header">
-            <h2>ADMIN PANEL</h2>
-        </div>
+        <div class="sidebar-header"><h2>ADMIN PANEL</h2></div>
         <ul class="sidebar-menu">
             <li><a href="dashboard.php"><i class="fa-solid fa-gauge"></i> <span>Dashboard</span></a></li>
             <li><a href="data_pesanan.php" class="active"><i class="fa-solid fa-cart-shopping"></i> <span>Pesanan</span></a></li>
@@ -51,18 +69,14 @@ $result_pesanan = $koneksi->query($query_pesanan);
             <li><a href="reports.php"><i class="fa-solid fa-chart-line"></i> <span>Laporan</span></a></li>
         </ul>
         <div class="sidebar-footer">
-            <a href="../../../index.php" class="btn-logout" onclick="return confirm('Yakin ingin keluar?');">
-                <i class="fa-solid fa-right-from-bracket"></i> <span>Logout</span>
-            </a>
+            <a href="../../../index.php" class="btn-logout" onclick="return confirm('Keluar?');"><i class="fa-solid fa-right-from-bracket"></i> <span>Logout</span></a>
         </div>
     </nav>
 
     <main class="admin-content">
         <div class="content-header">
-            <h1>Data Pesanan Masuk</h1>
-            <a href="tambah_pesanan.php" class="tombol-biru" style="text-decoration:none; font-size:0.9em;">
-                <i class="fa fa-plus-circle"></i> Pesanan Baru (Offline)
-            </a>
+            <h1>Data Pesanan</h1>
+            <a href="tambah_pesanan.php" class="tombol-biru"><i class="fa fa-plus"></i> Input Manual (Offline)</a>
         </div>
 
         <div class="table-container">
@@ -71,78 +85,58 @@ $result_pesanan = $koneksi->query($query_pesanan);
                     <tr>
                         <th>ID</th>
                         <th>Tanggal</th>
-                        <th>Tipe</th>
                         <th>Pelanggan</th>
                         <th>Total</th>
-                        <th>Status</th>
+                        <th>Status Saat Ini</th>
+                        <th>Ubah Status</th>
                         <th>Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <?php if ($result_pesanan && $result_pesanan->num_rows > 0): ?>
-                        <?php while($row = $result_pesanan->fetch_assoc()): ?>
-                            <tr>
-                                <td>
-                                    <strong>#<?= htmlspecialchars($row['order_id'] ?? $row['id_transaksi']) ?></strong>
-                                </td>
-                                <td><?= date('d/m/Y H:i', strtotime($row['tanggal'])) ?></td>
-                                
-                                <td>
-                                    <?php if($row['jenis_transaksi'] == 'offline'): ?>
-                                        <span style="background:#95a5a6; color:white; padding:4px 8px; border-radius:4px; font-size:0.8em; font-weight:bold;">OFFLINE</span>
-                                    <?php else: ?>
-                                        <span style="background:#3498db; color:white; padding:4px 8px; border-radius:4px; font-size:0.8em; font-weight:bold;">ONLINE</span>
-                                    <?php endif; ?>
-                                </td>
-
-                                <td style="font-weight:bold; color:#2c3e50;">
-                                    <?php 
-                                        // Prioritas 1: Nama Akun User (Jika ada)
-                                        if (!empty($row['nama_lengkap'])) {
-                                            echo htmlspecialchars($row['nama_lengkap']);
-                                            echo ' <i class="fa-solid fa-circle-check" style="color:#27ae60; margin-left:5px;" title="Member Terdaftar"></i>';
-                                        } 
-                                        // Prioritas 2: Nama Input Manual (Guest/Offline)
-                                        elseif (!empty($row['nama_penerima'])) {
-                                            echo htmlspecialchars($row['nama_penerima']);
-                                            echo ' <small style="color:#7f8c8d;">(Guest)</small>';
-                                        } 
-                                        // Fallback: Jika kosong semua
-                                        else {
-                                            echo "<span style='color:red; font-style:italic;'>Tanpa Nama</span>";
-                                        }
-                                    ?>
-                                </td>
-                                
-                                <td>Rp <?= number_format($row['total_pendapatan'], 0, ',', '.') ?></td>
-                                
-                                <td>
-                                    <?php 
-                                        $s = $row['status'];
-                                        $warnabel = 'gray';
-                                        if($s == 'Pending') $warnabel = '#f39c12'; // Kuning
-                                        if($s == 'Sukses' || $s == 'Selesai' || $s == 'Lunas') $warnabel = '#27ae60'; // Hijau
-                                        if($s == 'Batal' || $s == 'Gagal') $warnabel = '#c0392b'; // Merah
-                                    ?>
-                                    <span style="background:<?= $warnabel ?>; color:white; padding:4px 10px; border-radius:15px; font-size:0.8em; font-weight:bold;">
-                                        <?= strtoupper($s) ?>
-                                    </span>
-                                </td>
-                                <td>
-                                    <a href="#" onclick="alert('Fitur detail sedang dikembangkan')" title="Lihat Detail" class="btn-edit" style="background:#34495e;">
-                                        <i class="fa-solid fa-eye"></i>
-                                    </a>
-                                </td>
-                            </tr>
-                        <?php endwhile; ?>
-                    <?php else: ?>
+                    <?php while($row = $result_pesanan->fetch_assoc()): ?>
+                        <?php 
+                            // Tentukan warna badge
+                            $s = $row['status'];
+                            $cls = 'bg-pending';
+                            if($s=='Lunas') $cls='bg-lunas';
+                            if($s=='Dikemas') $cls='bg-dikemas';
+                            if($s=='Dikirim') $cls='bg-dikirim';
+                            if($s=='Selesai') $cls='bg-selesai';
+                            if($s=='Batal') $cls='bg-batal';
+                        ?>
                         <tr>
-                            <td colspan="7" style="text-align:center; padding: 40px; color:#7f8c8d;">
-                                <i class="fa-solid fa-box-open" style="font-size:3em; margin-bottom:10px;"></i><br>
-                                Belum ada data transaksi yang masuk.
+                            <td>#<?= $row['id_transaksi'] ?></td>
+                            <td><?= date('d/m/Y H:i', strtotime($row['tanggal'])) ?></td>
+                            <td>
+                                <?= htmlspecialchars(!empty($row['nama_lengkap']) ? $row['nama_lengkap'] : ($row['nama_penerima'] ?? 'Guest')) ?>
+                                <br><small><?= strtoupper($row['jenis_transaksi']) ?></small>
+                            </td>
+                            <td>Rp <?= number_format($row['total_pendapatan'],0,',','.') ?></td>
+                            
+                            <td><span class="badge <?= $cls ?>"><?= $s ?></span></td>
+                            
+                            <td>
+                                <form action="" method="POST" style="display:flex; gap:5px;">
+                                    <input type="hidden" name="id_transaksi" value="<?= $row['id_transaksi'] ?>">
+                                    <select name="status_baru" style="padding:5px; border-radius:4px;">
+                                        <option value="Pending" <?= $s=='Pending'?'selected':'' ?>>Pending</option>
+                                        <option value="Lunas" <?= $s=='Lunas'?'selected':'' ?>>Lunas</option>
+                                        <option value="Dikemas" <?= $s=='Dikemas'?'selected':'' ?>>Dikemas</option>
+                                        <option value="Dikirim" <?= $s=='Dikirim'?'selected':'' ?>>Diantar</option>
+                                        <option value="Selesai" <?= $s=='Selesai'?'selected':'' ?>>Selesai</option>
+                                        <option value="Batal" <?= $s=='Batal'?'selected':'' ?>>Batal</option>
+                                    </select>
+                                    <button type="submit" name="update_status" class="btn-edit" style="border:none; cursor:pointer;" title="Simpan Status"><i class="fa fa-save"></i></button>
+                                </form>
+                            </td>
+
+                            <td>
+                                <a href="data_pesanan.php?hapus=<?= $row['id_transaksi'] ?>" class="btn-delete" onclick="return confirm('Hapus Permanen?')" title="Hapus">
+                                    <i class="fa fa-trash"></i>
+                                </a>
                             </td>
                         </tr>
-                    <?php endif; ?>
+                    <?php endwhile; ?>
                 </tbody>
             </table>
         </div>
